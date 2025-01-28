@@ -1,0 +1,5 @@
+data
+.latest*
+latest*.json
+ignored
+.pycache/
