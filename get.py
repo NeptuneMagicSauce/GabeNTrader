@@ -42,6 +42,6 @@ if sys.stdout.isatty() and shutil.which("batcat"):
     with tempfile.NamedTemporaryFile(delete_on_close=False) as tmp:
         tmp.close()
         print(as_string, file=open(tmp.name, 'w'))
-        subprocess.run([ "batcat", "-l", "json", tmp.name])
+        subprocess.run([ "batcat", "-l", "json", "--theme", "Monokai Extended", "--file-name", url, tmp.name])
 else:
     print(as_string)
