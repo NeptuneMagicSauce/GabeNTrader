@@ -152,8 +152,6 @@ GetItems()
 ### TODO ###
 ############
 
-# get.py prints to bat --json if present and if not piped
-# alias bat --json
 # test the cookie
 # find userID from cookie
 # list inventory
