@@ -23,16 +23,16 @@ def GetCookie():
         path = path + "/Mozilla/Firefox/Profiles/"
 
         latest_profile = None
-        for profile in os.listdir(path):
-            profile = path + "/" + profile
+        for profile in os.scandir(path):
+            name = path + "/" + profile.name
             if latest_profile == None:
-                latest_profile = profile
-                latest_time = os.path.getmtime(profile)
+                latest_profile = name
+                latest_time = profile.stat().st_mtime
             else:
-                t = os.path.getmtime(profile)
+                t = profile.stat().st_mtime
                 if t > latest_time:
                     latest_time = t
-                    latest_profile = profile
+                    latest_profile = name
 
         if latest_profile is None:
             raise Exception("no profiles in " + path)
