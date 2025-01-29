@@ -42,31 +42,14 @@ def GetCookie():
         if not os.path.isfile(path):
             raise Exception("does not exist: " + path)
 
-        # TODO filter the sqlite query
         with tempfile.NamedTemporaryFile(delete=True) as tmp:
             shutil.copy(path, tmp.name)
             db = sqlite3.connect(tmp.name)
-            mozdb = db.execute("select * from moz_cookies").fetchall()
-            # db.execute(".mode column")
-            # db.execute(".headers on")
-            #  where domain="steamcommunity.com"
-            for i in db.execute('select value from moz_cookies where host="steamcommunity.com" and name="steamLoginSecure" and originAttributes=""').fetchall():
-                # print(str(i) + "\n")
-                print(i[0])
-
-        if mozdb is None:
-            raise Exception("failed to database the cookie")
-
-        for m in mozdb:
-            # 1 : partitionKey
-            # 2 : key
-            # 3 : value
-            # 4 : domain
-            if len(m) >= 5 and m[1] == "" and m[2] == k_cookie_key and m[4] == k_web_domain:
-                # print(m)
-                cookie = str(m[3])
-                # print(cookie)
-                return { "steamLoginSecure": cookie }
+            # db.execute("select * from moz_cookies").fetchall()
+            matches = db.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '" and originAttributes=""').fetchall()
+            if len(matches) > 0:
+                # print(str(matches[0]))
+                return { k_cookie_key: str(matches[0]) }
     except Exception as e:
         print(e)
     return ""
