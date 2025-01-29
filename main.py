@@ -8,7 +8,10 @@ import time
 import random
 import sys
 
-from cookie import GetCookie
+sys.path.append("src")
+from cookie import *
+from utils import *
+
 
 # import pandas as pd
 # import numpy as np
@@ -18,6 +21,7 @@ from cookie import GetCookie
 
 random.seed(time.time())
 
+k_app_name = "GabeNTrader"
 k_game_id = "730"
 k_data_dir = "data"
 k_link_to_latest = 'latest.items.json'
@@ -201,14 +205,17 @@ def GetItems():
 ### MAIN ###
 ############
 
-if not os.path.isdir(k_data_dir):
-    os.mkdir(k_data_dir)
-os.chdir(k_data_dir)
+data_path = GetDataPath(k_app_name) + "/" + k_data_dir
+
+if not os.path.isdir(data_path):
+    os.mkdir(data_path)
+os.chdir(data_path)
 
 
 # TODO refresh cookie only periodically, pickle it
 # because it's slow
 # or refresh it if it fails
+# also check if needs refreshing: either periodically or at every startup if fast
 cookie = GetCookie()
 fetcher = Fetcher()
 
@@ -218,9 +225,8 @@ GetItems()
 ### TODO ###
 ############
 
+# get.py prints to bat --json if present and if not piped
+# alias bat --json
 # test the cookie
 # find userID from cookie
 # list inventory
-# make repo
-# git ignore
-# test emacs-ripgrep works on project search
