@@ -5,6 +5,9 @@ import sys
 import os
 import time
 import random
+import pickle
+import gzip
+import shutil
 
 k_data_dir = "data"
 
@@ -76,3 +79,16 @@ class ProgressBar:
         print(f"{self.prefix}[{u'#'*x}{('.'*(self.size-x))}] {index}/{self.count} ETA {time_str}", end='\r', file=self.out, flush=True)
         if j == self.count:
             print('')
+
+def pickle_save(data, path):
+    backup = path + ".backup.gz"
+    path = path + ".gz"
+    try:
+        shutil.copy(path, backup)
+    except:
+        pass
+    with gzip.open(path, "wb") as f:
+        pickle.dump(data, f)
+def pickle_load(path):
+    with gzip.open(path + ".gz", "rb") as f:
+        return pickle.load(f)

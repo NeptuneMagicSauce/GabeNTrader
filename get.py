@@ -8,10 +8,11 @@ import os
 import subprocess
 import tempfile
 
-# TODO option no-cookie
+# todo option no-cookie
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.realpath(__file__))) + "/src")
 from cookie import *
+from network import *
 
 cookie = GetCookie()
 
@@ -22,8 +23,7 @@ url = sys.argv[1]
 
 req = requests.get(url, cookies=cookie)
 
-if req.status_code != 200:
-    print(req.reason)
+if not Fetcher.check(req):
     exit(1)
 
 if len(req.content) <= 0:
