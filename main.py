@@ -20,6 +20,7 @@ random.seed(time.time())
 
 k_game_id = "730"
 k_data_dir = "data"
+k_link_to_latest = 'latest.items.json'
 
 # TODO move all classes and functions in files
 
@@ -116,12 +117,21 @@ def GetItems():
 
     index = 0
 
+    link_to_latest_realpath = os.path.realpath(k_link_to_latest) if os.path.isfile(k_link_to_latest) else ""
+
     while index < item_count:
         data_file = str(k_game_id) + '_items_' + f"{index:06}" + '.json'
         if os.path.isfile(data_file):
-            # WARNING only load latest
-            # WARNING check progress bar count if working on last item
-            items = json.load(open(data_file, 'r'))
+            # TODO remove partial data
+            # with "if latest.link exists, load from here and carry on"
+            # with error path for latest.link does not exist but data exists
+            # TODO load faster with pickle
+            # TODO compress data (maybe)
+            is_the_last = len(link_to_latest_realpath) and os.path.realpath(data_file) == link_to_latest_realpath
+            if not is_the_last and index + k_item_per_req >= item_count:
+                is_the_last = True
+            if is_the_last:
+                items = json.load(open(data_file, 'r'))
             progress.tick(min(item_count, index + k_item_per_req))
             index += k_item_per_req
             continue
@@ -157,12 +167,11 @@ def GetItems():
             items.append(item_json)
 
         print(json.dumps(items, indent=1), file=open(data_file,'w'))
-        link_to_latest = 'latest.items.json'
-        if os.path.isfile(link_to_latest):
-            os.remove(link_to_latest)
+        if os.path.isfile(k_link_to_latest):
+            os.remove(k_link_to_latest)
         try:
             # this can fail on windows not developer-enabled
-            os.symlink(data_file, link_to_latest)
+            os.symlink(data_file, k_link_to_latest)
         except Exception:
             pass
 
@@ -176,6 +185,7 @@ def GetItems():
     # with open(k_game_id + '_item_names.pkl', "rb") as file:
     #     item_names = pickle.load(file)
     # print("\n".join(item_names))
+    # print(len(items), "items")
 
 # def GetInventory():
 #     print("fetch my inventory")
@@ -196,6 +206,9 @@ if not os.path.isdir(k_data_dir):
 os.chdir(k_data_dir)
 
 
+# TODO refresh cookie only periodically, pickle it
+# because it's slow
+# or refresh it if it fails
 cookie = GetCookie()
 fetcher = Fetcher()
 
