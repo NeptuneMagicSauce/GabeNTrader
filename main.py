@@ -4,14 +4,14 @@ import requests
 import json
 import pickle
 import os
-import time
-import random
 import sys
 
+os.chdir(os.path.dirname(os.path.abspath(os.path.realpath(__file__)))) # chdir to main.py
 sys.path.append("src")
+
 from cookie import *
 from utils import *
-
+from network import *
 
 # import pandas as pd
 # import numpy as np
@@ -19,78 +19,9 @@ from utils import *
 # import matplotlib.pyplot as plt
 # import seaborn as sns
 
-random.seed(time.time())
-
 k_app_name = "GabeNTrader"
 k_game_id = "730"
-k_data_dir = "data"
 k_link_to_latest = 'latest.items.json'
-
-# TODO move all classes and functions in files
-
-class RateLimiter:
-    def __init__(self, period):
-        self.period = period
-        self.last_time = float(-1)
-    def tick(self):
-        current_time = time.time()
-        if self.last_time <= 0:
-            elapsed = float(0)
-            to_wait = float(0)
-        else:
-            elapsed = current_time - self.last_time
-            to_wait = max(0.0, self.period - elapsed)
-        time.sleep(to_wait)
-        self.last_time = time.time()
-
-class Fetcher(RateLimiter):
-    def __init__(self):
-        super().__init__(period=2.5)
-                         # 10.0)
-                         #3.0)
-                         # 2.5)
-    def get(self, url):
-        self.tick()
-        ret = requests.get(url, cookies=cookie)
-
-        with open('.latest.code', 'w') as c, open('.latest.json', 'w') as j, open('.latest.url', 'w') as u:
-            print(ret.status_code, file=c)
-            print(ret.url, file=u)
-            if ret.status_code == requests.codes.ok:
-                # print(ret.json(), file=j) # requests.json() fails to parse with jq
-                print(json.dumps(json.loads(ret.content), indent=1), file=j)
-            else:
-                print('', file=j)
-        return ret
-    def check(self, request):
-        if request.status_code != requests.codes.ok:
-            print(request.status_code, request.reason, "from", request.url, file=sys.stderr)
-            return False
-        return True
-
-class ProgressBar:
-    def __init__(self, count, prefix='', size=60, out=sys.stdout):
-        self.count = count
-        self.prefix = prefix + ' '
-        self.size = size
-        self.out = out
-        self.start = time.time()
-        self.tick(0)
-    def tick(self, index):
-        if self.count <= 0:
-            return
-        j = min(self.count, index + 1)
-        x = int(self.size*j/self.count)
-        current = time.time()
-        if j <= 0:
-            remaining = 0
-        else:
-            remaining = ((current - self.start) / j) * (self.count - j)
-        mins, sec = divmod(remaining, 60)
-        time_str = f"{int(mins):02}m:{int(sec):02}s"
-        print(f"{self.prefix}[{u'#'*x}{('.'*(self.size-x))}] {index}/{self.count} ETA {time_str}", end='\r', file=self.out, flush=True)
-        if j == self.count:
-            print('')
 
 def GetItems():
     print("Getting item count", end='', file=sys.stderr)
@@ -126,6 +57,7 @@ def GetItems():
     while index < item_count:
         data_file = str(k_game_id) + '_items_' + f"{index:06}" + '.json'
         if os.path.isfile(data_file):
+            # TODO progress bar only for left to download
             # TODO remove partial data
             # with "if latest.link exists, load from here and carry on"
             # with error path for latest.link does not exist but data exists
@@ -205,19 +137,14 @@ def GetItems():
 ### MAIN ###
 ############
 
-data_path = GetDataPath(k_app_name) + "/" + k_data_dir
-
-if not os.path.isdir(data_path):
-    os.mkdir(data_path)
-os.chdir(data_path)
-
+init(k_app_name)
 
 # TODO refresh cookie only periodically, pickle it
 # because it's slow
 # or refresh it if it fails
 # also check if needs refreshing: either periodically or at every startup if fast
-cookie = GetCookie()
-fetcher = Fetcher()
+# cookie = GetCookie()
+fetcher = Fetcher(GetCookie())
 
 GetItems()
 
