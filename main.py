@@ -135,6 +135,10 @@ def GetItems():
 #     as_json = json.loads(request.content)
 #     json.dumps(as_json, indent=1)
 
+
+
+
+
 ############
 ### MAIN ###
 ############
@@ -148,7 +152,6 @@ GetItems()
 # because it's slow
 # or refresh it if it fails
 # also check if needs refreshing: either periodically or at every startup if fast
-# TODO clang-format: no multiple blank lines, ...
 # TODO test the cookie
 # TODO find userID from cookie
 # TODO list inventory
