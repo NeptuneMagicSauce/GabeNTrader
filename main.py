@@ -36,7 +36,7 @@ def GetItems():
         index = len(items)
         print("InCache:", index)
     except:
-        print("Failed to load cache from " + cache_path, file=sys.stderr)
+        print("Failed to load cache from " + cache_path)
 
     item_count_req = fetcher.get("https://steamcommunity.com/market/search/render/?search_descriptions=0&sort_column=default&sort_dir=desc&appid="+k_game_id+"&norender=1&count=1") # get page
 
@@ -46,7 +46,7 @@ def GetItems():
     item_count_json = json.loads(item_count_req.content)
 
     if not 'total_count' in item_count_json:
-        print('total_count not found', file=sys.stderr)
+        print('total_count not found')
         return
 
     item_count = item_count_json['total_count'] # get total count
@@ -71,11 +71,11 @@ def GetItems():
         items_json = json.loads(items_query.content)
 
         if items_json is None:
-            print("json parsing returned None", file=sys.stderr)
+            print("json parsing returned None")
             break
 
         if not 'results' in items_json:
-            print("'results' not found:", file=sys.stderr)
+            print("'results' not found:")
             print(json.dumps(allItems, indent=1))
             break
 
@@ -84,7 +84,7 @@ def GetItems():
         count = len(items_json)
 
         if count == 0:
-            print("results length = 0", file=sys.stderr)
+            print("results length = 0")
             break
 
         items.extend(items_json)

@@ -47,7 +47,7 @@ class Fetcher(RateLimiter):
         return ret
     def check(request):
         if request.status_code != requests.codes.ok:
-            print(request.reason, request.status_code, "from", request.url, file=sys.stderr)
+            print(request.reason, request.status_code, "from", request.url)
             return False
         return True
 
