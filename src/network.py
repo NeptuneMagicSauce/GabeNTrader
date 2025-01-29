@@ -20,12 +20,16 @@ class RateLimiter:
         self.last_time = time.time()
 
 class Fetcher(RateLimiter):
-    def __init__(self, cookie=''):
+    def initialize(self, cookie):
+        self.cookie = cookie
+        # print(cookie)
+
+    def __init__(self):
         super().__init__(period=2.5)
                          # 10.0)
                          #3.0)
                          # 2.5)
-        self.cookie = cookie
+        self.cookie = ''
 
     def get(self, url):
         self.tick()
@@ -45,3 +49,5 @@ class Fetcher(RateLimiter):
             print(request.status_code, request.reason, "from", request.url, file=sys.stderr)
             return False
         return True
+
+fetcher = Fetcher()

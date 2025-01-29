@@ -57,6 +57,8 @@ def GetItems():
     while index < item_count:
         data_file = str(k_game_id) + '_items_' + f"{index:06}" + '.json'
         if os.path.isfile(data_file):
+            # TODO store the total count of stored
+            # TODO invalidate cache if total_count changes
             # TODO progress bar only for left to download
             # TODO remove partial data
             # with "if latest.link exists, load from here and carry on"
@@ -138,20 +140,15 @@ def GetItems():
 ############
 
 init(k_app_name)
+fetcher.initialize(GetCookie())
+
+GetItems()
 
 # TODO refresh cookie only periodically, pickle it
 # because it's slow
 # or refresh it if it fails
 # also check if needs refreshing: either periodically or at every startup if fast
-# cookie = GetCookie()
-fetcher = Fetcher(GetCookie())
-
-GetItems()
-
-############
-### TODO ###
-############
-
-# test the cookie
-# find userID from cookie
-# list inventory
+# TODO clang-format: no multiple blank lines, ...
+# TODO test the cookie
+# TODO find userID from cookie
+# TODO list inventory
