@@ -24,12 +24,23 @@ k_game_id = "730"
 k_link_to_latest = 'latest.items.json'
 
 def GetItems():
-    print("Getting item count", end='', file=sys.stderr)
-    sys.stderr.flush()
-    item_count_req = fetcher.get("https://steamcommunity.com/market/search/render/?search_descriptions=0&sort_column=default&sort_dir=desc&appid="+k_game_id+"&norender=1&count=1") # get page
-    print('', file=sys.stderr)
 
-    if not fetcher.check(item_count_req):
+    items = []
+    index = 0
+
+    # TODO invalidate cache if total_count change
+    # it needs another serialized bit: is pickle finished?
+    cache_path = "items.pkl"
+    try:
+        items = pickle_load(cache_path) #pickle.load(open(cache_path, 'rb'))
+        index = len(items)
+        print("InCache:", index)
+    except:
+        print("Failed to load cache from " + cache_path, file=sys.stderr)
+
+    item_count_req = fetcher.get("https://steamcommunity.com/market/search/render/?search_descriptions=0&sort_column=default&sort_dir=desc&appid="+k_game_id+"&norender=1&count=1") # get page
+
+    if not Fetcher.check(item_count_req):
         exit(1)
 
     item_count_json = json.loads(item_count_req.content)
@@ -39,57 +50,33 @@ def GetItems():
         return
 
     item_count = item_count_json['total_count'] # get total count
-    # item_count = min(item_count, 2500)
+    # item_count = min(item_count, 14000)
+    # item_count = 500
+
+    print("MarketItems:", item_count)
 
     k_item_per_req = 100
     # k_item_per_req = 2
 
-    item_names = []
-    items = []
-
-    print('Getting', item_count, 'items')
-    progress = ProgressBar(item_count)
-
-    index = 0
-
-    link_to_latest_realpath = os.path.realpath(k_link_to_latest) if os.path.isfile(k_link_to_latest) else ""
+    progress = ProgressBar(item_count - index)
+    fetched = 0
 
     while index < item_count:
-        data_file = str(k_game_id) + '_items_' + f"{index:06}" + '.json'
-        if os.path.isfile(data_file):
-            # TODO store the total count of stored
-            # TODO invalidate cache if total_count changes
-            # TODO progress bar only for left to download
-            # TODO remove partial data
-            # with "if latest.link exists, load from here and carry on"
-            # with error path for latest.link does not exist but data exists
-            # TODO load faster with pickle
-            # TODO compress data (maybe)
-            is_the_last = len(link_to_latest_realpath) and os.path.realpath(data_file) == link_to_latest_realpath
-            if not is_the_last and index + k_item_per_req >= item_count:
-                is_the_last = True
-            if is_the_last:
-                items = json.load(open(data_file, 'r'))
-            progress.tick(min(item_count, index + k_item_per_req))
-            index += k_item_per_req
-            continue
 
-        while True:
-            items_query = fetcher.get('https://steamcommunity.com/market/search/render/?start='+str(index)+'&search_descriptions=0&sort_column=default&sort_dir=desc&appid='+k_game_id+'&norender=1&count=' + str(k_item_per_req))
+        items_query = fetcher.get('https://steamcommunity.com/market/search/render/?start='+str(index)+'&search_descriptions=0&sort_column=default&sort_dir=desc&appid='+k_game_id+'&norender=1&count=' + str(k_item_per_req))
 
-            if not fetcher.check(items_query):
-                continue
+        if not Fetcher.check(items_query):
+            break
 
-            items_json = json.loads(items_query.content)
+        items_json = json.loads(items_query.content)
 
-            if items_json is None:
-                print("json parsing returned None", file=sys.stderr)
-                continue
-            if not 'results' in items_json:
-                print("results not found:", file=sys.stderr)
-                print(json.dumps(allItems, indent=1))
-                continue
+        if items_json is None:
+            print("json parsing returned None", file=sys.stderr)
+            break
 
+        if not 'results' in items_json:
+            print("'results' not found:", file=sys.stderr)
+            print(json.dumps(allItems, indent=1))
             break
 
         items_json = items_json['results'];
@@ -98,32 +85,24 @@ def GetItems():
 
         if count == 0:
             print("results length = 0", file=sys.stderr)
-            continue
+            break
 
-        for item_json in items_json:
-            item_names.append(item_json['hash_name'])
-            items.append(item_json)
+        items.extend(items_json)
 
-        print(json.dumps(items, indent=1), file=open(data_file,'w'))
-        if os.path.isfile(k_link_to_latest):
-            os.remove(k_link_to_latest)
-        try:
-            # this can fail on windows not developer-enabled
-            os.symlink(data_file, k_link_to_latest)
-        except Exception:
-            pass
-
-        progress.tick(index + count)
+        fetched += count
         index += count
+        progress.tick(fetched)
 
-    # uniqueness
-    item_names = list(set(item_names))
+    pickle_save(items, cache_path)
 
-    pickle.dump(item_names, open(k_game_id + '_item_names.pkl', "wb"))
-    # with open(k_game_id + '_item_names.pkl', "rb") as file:
-    #     item_names = pickle.load(file)
-    # print("\n".join(item_names))
-    # print(len(items), "items")
+    # extract hash_name
+    names = set()
+    for i in items:
+        names.add(i['hash_name'])
+    pickle_save(names, "names.pkl")
+
+    print("Loaded:", len(items))
+    print("Names:", len(names))
 
 # def GetInventory():
 #     print("fetch my inventory")
@@ -134,10 +113,6 @@ def GetItems():
 #     print("request.content", request.content)
 #     as_json = json.loads(request.content)
 #     json.dumps(as_json, indent=1)
-
-
-
-
 
 ############
 ### MAIN ###

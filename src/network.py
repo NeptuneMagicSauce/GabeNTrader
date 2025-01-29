@@ -3,6 +3,7 @@
 import requests
 import json
 import time
+import sys
 
 class RateLimiter:
     def __init__(self, period):
@@ -44,9 +45,9 @@ class Fetcher(RateLimiter):
             else:
                 print('', file=j)
         return ret
-    def check(self, request):
+    def check(request):
         if request.status_code != requests.codes.ok:
-            print(request.status_code, request.reason, "from", request.url, file=sys.stderr)
+            print(request.reason, request.status_code, "from", request.url, file=sys.stderr)
             return False
         return True
 
