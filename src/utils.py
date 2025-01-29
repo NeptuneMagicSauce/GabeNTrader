@@ -50,7 +50,7 @@ def GetDataPath(app_name):
     if os.path.isdir(path):
         # os.path.iswritable fails on linux: 'posixpath' has no attribute 'iswritable'
         if not os.access(path, os.W_OK):
-            print("DataPath", path, "exists but is not writable", file=sys.stderr)
+            print("DataPath", path, "exists but is not writable")
             path = ""
     else:
         os.mkdir(path)
