@@ -3,8 +3,15 @@
 import requests
 import json
 import sys
+import shutil
+import os
+import subprocess
+import tempfile
 
-from main import GetCookie
+# TODO option no-cookie
+
+sys.path.append(os.path.dirname(os.path.abspath(os.path.realpath(__file__))) + "/src")
+from cookie import *
 
 cookie = GetCookie()
 
@@ -29,4 +36,12 @@ except Exception as e:
     print("did not parse JSON:", req.content)
     exit(1)
 
-print(json.dumps(as_json, indent=1))
+as_string = json.dumps(as_json, indent=1)
+
+if sys.stdout.isatty() and shutil.which("batcat"):
+    with tempfile.NamedTemporaryFile(delete_on_close=False) as tmp:
+        tmp.close()
+        print(as_string, file=open(tmp.name, 'w'))
+        subprocess.run([ "batcat", "-l", "json", tmp.name])
+else:
+    print(as_string)
