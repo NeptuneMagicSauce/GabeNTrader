@@ -39,8 +39,10 @@ class Fetcher(RateLimiter):
         self.cookie = ''
 
     def get_json(self, url):
-        response = self.get(url)
-        return Fetcher.convert(response, Fetcher.Expect.JSON)
+        return Fetcher.convert(self.get(url), Fetcher.Expect.JSON)
+
+    def get_text(self, url):
+        return Fetcher.convert(self.get(url), Fetcher.Expect.Text)
 
     def get(self, url):
         self.tick()
@@ -48,6 +50,8 @@ class Fetcher(RateLimiter):
         try:
             print(ret.status_code, file=open(".latest.code", "w"))
             print(ret.url, file=open(".latest.url", "w"))
+            print(ret.text, file=open('.latest.text', 'w'))
+            pickle.dump(ret.content, file=open('.latest.bin.pkl', 'wb'))
         except:
             pass
         return ret
