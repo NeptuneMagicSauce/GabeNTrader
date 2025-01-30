@@ -123,11 +123,10 @@ Instances.user_id = get_user_id()
 print('UserId:', Instances.user_id)
 
 # TODO test the cookie, it must load the private inventory
-# TODO invalidate cache if total_count change
-# needs valid cookie for TooManyRequests
+
+# TODO invalidate cached items if total_count changed
 # needs another serialized bit: is pickle finished?
 # because cache size can not be compared without that
 # TODO refresh cookie only if needed, pickle it
-# but only if we have a reliable way to validate it
-# TODO find userID from cookie
+# TODO invalidate cached user_id if cookie changed
 # TODO list inventory

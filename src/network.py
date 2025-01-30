@@ -33,7 +33,7 @@ class Fetcher(RateLimiter):
                          #3.0)
                          # 2.5)
         self.cookie = cookie
-        print('Cookie:', cookie['steamLoginSecure'][:50], '(...)')
+        print('Cookie:', cookie['steamLoginSecure'][:50] + '(...)' if len(cookie) else {})
 
     def get_json(self, url):
         return Fetcher.convert(self.get(url), Fetcher.Expect.JSON)
