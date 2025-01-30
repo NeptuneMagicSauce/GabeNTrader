@@ -4,13 +4,17 @@ from instances import *
 from network import *
 from utils import *
 
-k_userid_path = "userid"
-
 def get_user_id():
-    try:
-        return pickle_load(k_userid_path)
-    except:
-        pass
+
+    k_userid_path = "userid"
+
+    if len(Instances.cookie):
+        # cookie is not empty
+        # load from cache
+        try:
+            return pickle_load(k_userid_path)
+        except:
+            pass
 
     c = Instances.fetcher.get_text("https://steamcommunity.com/my/profile")
     if c is None:
@@ -36,4 +40,4 @@ def get_user_id():
     return None
 
 # TODO run in parallel as soon as possible
-# TODO invalidate cache: if cookie (empty or newer) or if change account
+# TODO invalidate cached user_id: if account changed

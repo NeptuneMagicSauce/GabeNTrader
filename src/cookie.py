@@ -7,6 +7,7 @@ import shutil
 from instances import *
 from utils import *
 
+# TODO make constants private
 k_web_domain = "steamcommunity.com"
 k_cookie_key = "steamLoginSecure"
 
