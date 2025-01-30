@@ -12,7 +12,7 @@ sys.path.append("src")
 from cookie import *
 from utils import *
 from network import *
-# from steam import *
+from steam import *
 
 # import pandas as pd
 # import numpy as np
@@ -113,8 +113,9 @@ def GetItems():
 init(k_app_name)
 fetcher.initialize(GetCookie())
 
-GetItems()
-# GetUserId()
+# GetItems()
+id = GetUserId()
+print(id)
 
 # TODO test the cookie, it must load the private inventory
 # TODO invalidate cache if total_count change
