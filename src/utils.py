@@ -7,12 +7,11 @@ import pickle
 import gzip
 import shutil
 
-k_data_dir = "data"
-
 class Utils:
     def initialize(app_name):
         random.seed(time.time())
 
+        k_data_dir = "data"
         data_path = get_data_path(app_name) + "/" + k_data_dir
         if not os.path.isdir(data_path):
             os.mkdir(data_path)

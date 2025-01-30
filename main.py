@@ -23,7 +23,6 @@ from steam import *
 
 k_app_name = "GabeNTrader"
 k_game_id = "730"
-k_link_to_latest = 'latest.items.json'
 
 def get_items():
 
