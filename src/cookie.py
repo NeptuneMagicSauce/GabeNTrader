@@ -48,8 +48,11 @@ def GetCookie():
             # db.execute("select * from moz_cookies").fetchall()
             matches = db.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '" and originAttributes=""').fetchall()
             if len(matches) > 0:
-                # print(str(matches[0]))
-                return { k_cookie_key: str(matches[0]) }
+                first_match = matches[0]
+                if isinstance(first_match, tuple) and len(first_match) > 0:
+                    cookie_value = first_match[0]
+                    if isinstance(cookie_value, str):
+                        return { k_cookie_key: cookie_value }
     except Exception as e:
         print(e)
     return ""
