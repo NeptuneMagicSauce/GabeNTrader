@@ -53,6 +53,7 @@ def GetCookie():
                     cookie_value = first_match[0]
                     if isinstance(cookie_value, str):
                         return { k_cookie_key: cookie_value }
+            print("failed to find cookie in matches:", matches)
     except Exception as e:
         print(e)
     return ""
