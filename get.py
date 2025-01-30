@@ -33,7 +33,8 @@ if len(req.content) <= 0:
 try:
     as_json = json.loads(req.content)
 except Exception as e:
-    print("did not parse JSON:", req.content)
+    print("did not parse JSON", file=sys.stderr)
+    print(req.text)
     exit(1)
 
 as_string = json.dumps(as_json, indent=1)
