@@ -47,7 +47,7 @@ class Fetcher(RateLimiter):
         ret = requests.get(url, cookies=self.cookie)
         try:
             print(ret.status_code, file=open(".latest.code", "w"))
-            print(ret.url, file=open(".latest.url", "w"))
+            print(url, file=open(".latest.url", "w"))
             print(ret.text, file=open('.latest.text', 'w'))
             pickle.dump(ret.content, file=open('.latest.bin.pkl', 'wb'))
         except:
