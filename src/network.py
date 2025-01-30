@@ -80,3 +80,7 @@ class Fetcher(RateLimiter):
             print(response.reason, response.status_code, "from", response.url)
             return False
         return True
+
+class Network:
+    def initialize():
+        Instances.fetcher = Fetcher(Instances.cookie)

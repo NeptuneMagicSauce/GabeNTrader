@@ -114,14 +114,11 @@ Utils.initialize(k_app_name)
 
 Cookie.initialize()
 
-Instances.fetcher = Fetcher(Instances.cookie)
+Network.initialize()
+
+Steam.initialize()
 
 get_items()
-
-Instances.user_id = get_user_id()
-print('UserId:', Instances.user_id)
-
-# TODO test the cookie, it must load the private inventory
 
 # TODO invalidate cached items if total_count changed
 # needs another serialized bit: is pickle finished?
