@@ -15,10 +15,10 @@ class Cookie:
         # gets the steamcommunity.com login cookie
         # supports Firefox on Windows WSL
         try:
-            path = GetWindowsEnvVar("APPDATA")
+            path = get_windows_env_var("APPDATA")
 
             # WSL compatibility here
-            path = ConvertPathToWSL(path)
+            path = convert_path_to_wsl(path)
 
             path = path + "/Mozilla/Firefox/Profiles/"
 

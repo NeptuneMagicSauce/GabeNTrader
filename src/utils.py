@@ -13,16 +13,15 @@ class Utils:
     def initialize(app_name):
         random.seed(time.time())
 
-        data_path = GetDataPath(app_name) + "/" + k_data_dir
+        data_path = get_data_path(app_name) + "/" + k_data_dir
         if not os.path.isdir(data_path):
             os.mkdir(data_path)
         os.chdir(data_path)
 
-# TODO snake_case
-def GetWindowsEnvVar(var_name):
+def get_windows_env_var(var_name):
     return subprocess.run(["cmd.exe", "/c", "echo", "%" + var_name + "%"], capture_output=True).stdout.strip().decode("utf-8")
 
-def ConvertPathToWSL(path):
+def convert_path_to_wsl(path):
     if len(path) < 2:
         return path
 
@@ -35,15 +34,15 @@ def ConvertPathToWSL(path):
 
     return path
 
-def RemoveTrailingSlash(path):
+def remove_trailing_slash(path):
     return path[:-1] if path.endswith("/") else path
 
 # directory for read-write data: create if needed, return path
-def GetDataPath(app_name):
-    local_app_data = GetWindowsEnvVar("LOCALAPPDATA")
+def get_data_path(app_name):
+    local_app_data = get_windows_env_var("LOCALAPPDATA")
 
-    local_app_data = ConvertPathToWSL(local_app_data)
-    local_app_data = RemoveTrailingSlash(local_app_data)
+    local_app_data = convert_path_to_wsl(local_app_data)
+    local_app_data = remove_trailing_slash(local_app_data)
 
     path = local_app_data + "/" + app_name
 

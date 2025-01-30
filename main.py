@@ -25,7 +25,7 @@ k_app_name = "GabeNTrader"
 k_game_id = "730"
 k_link_to_latest = 'latest.items.json'
 
-def GetItems():
+def get_items():
 
     items = []
     index = 0
@@ -97,7 +97,7 @@ def GetItems():
     print("Loaded:", len(items))
     print("Names:", len(names))
 
-# def GetInventory():
+# def get_inventory():
 #     print("fetch my inventory")
 #     # request = requests.get("https://steamcommunity.com/market/&norender=1", cookies=cookie)
 #     request = requests.get("https://steamcommunity.com/my/inventory/&norender=1")#, cookies=cookie)
@@ -117,9 +117,9 @@ Cookie.initialize()
 
 Instances.fetcher = Fetcher(Instances.cookie)
 
-GetItems()
+get_items()
 
-Instances.user_id = GetUserId()
+Instances.user_id = get_user_id()
 print('UserId:', Instances.user_id)
 
 # TODO test the cookie, it must load the private inventory
