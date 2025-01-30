@@ -12,6 +12,7 @@ sys.path.append("src")
 from cookie import *
 from utils import *
 from network import *
+# from steam import *
 
 # import pandas as pd
 # import numpy as np
@@ -28,8 +29,6 @@ def GetItems():
     items = []
     index = 0
 
-    # TODO invalidate cache if total_count change
-    # it needs another serialized bit: is pickle finished?
     cache_path = "items.pkl"
     try:
         items = pickle_load(cache_path) #pickle.load(open(cache_path, 'rb'))
@@ -38,12 +37,10 @@ def GetItems():
     except:
         print("Failed to load cache from " + cache_path)
 
-    item_count_req = fetcher.get("https://steamcommunity.com/market/search/render/?search_descriptions=0&sort_column=default&sort_dir=desc&appid="+k_game_id+"&norender=1&count=1") # get page
+    item_count_json = fetcher.get_json("https://steamcommunity.com/market/search/render/?search_descriptions=0&sort_column=default&sort_dir=desc&appid="+k_game_id+"&norender=1&count=1")
 
-    if not Fetcher.check(item_count_req):
+    if item_count_json is None:
         exit(1)
-
-    item_count_json = json.loads(item_count_req.content)
 
     if not 'total_count' in item_count_json:
         print('total_count not found')
@@ -63,12 +60,7 @@ def GetItems():
 
     while index < item_count:
 
-        items_query = fetcher.get('https://steamcommunity.com/market/search/render/?start='+str(index)+'&search_descriptions=0&sort_column=default&sort_dir=desc&appid='+k_game_id+'&norender=1&count=' + str(k_item_per_req))
-
-        if not Fetcher.check(items_query):
-            break
-
-        items_json = json.loads(items_query.content)
+        items_json = fetcher.get_json("https://steamcommunity.com/market/search/render/?start=" + str(index) + "&search_descriptions=0&sort_column=default&sort_dir=desc&appid=" + k_game_id + "&norender=1&count=" + str(k_item_per_req))
 
         if items_json is None:
             print("json parsing returned None")
@@ -122,11 +114,14 @@ init(k_app_name)
 fetcher.initialize(GetCookie())
 
 GetItems()
+# GetUserId()
 
-# TODO refresh cookie only periodically, pickle it
-# because it's slow
-# or refresh it if it fails
-# also check if needs refreshing: either periodically or at every startup if fast
-# TODO test the cookie
+# TODO test the cookie, it must load the private inventory
+# TODO invalidate cache if total_count change
+# needs valid cookie for TooManyRequests
+# needs another serialized bit: is pickle finished?
+# because cache size can not be compared without that
+# TODO refresh cookie only if needed, pickle it
+# but only if we have a reliable way to validate it
 # TODO find userID from cookie
 # TODO list inventory
