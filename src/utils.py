@@ -78,15 +78,24 @@ class ProgressBar:
         if j == self.count:
             print('')
 
-def pickle_save(data, path):
-    backup = path + ".backup.gz"
-    path = path + ".gz"
+def pickle_compress_suffix(compress):
+    return ".gz" if compress else ""
+
+def pickle_save(data, path, compress=True):
+    suffix = pickle_compress_suffix(compress)
+    backup = path + ".backup" + suffix
+    path = path + suffix
     try:
         shutil.copy(path, backup)
     except:
         pass
-    with gzip.open(path, "wb") as f:
-        pickle.dump(data, f)
+    pickle.dump(data, gzip.open(path, "wb") if compress else open(path, 'wb'))
+
 def pickle_load(path):
-    with gzip.open(path + ".gz", "rb") as f:
-        return pickle.load(f)
+    for compress in [ True, False ]:
+        try:
+            p = path + pickle_compress_suffix(compress)
+            return pickle.load(gzip.open(p, 'rb') if compress else open(p, 'rb'))
+        except:
+            pass
+    raise

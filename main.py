@@ -113,9 +113,10 @@ def GetItems():
 init(k_app_name)
 fetcher.initialize(GetCookie())
 
-# GetItems()
+GetItems()
+
 id = GetUserId()
-print(id)
+print('UserId:', id)
 
 # TODO test the cookie, it must load the private inventory
 # TODO invalidate cache if total_count change
