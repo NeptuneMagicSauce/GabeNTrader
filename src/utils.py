@@ -9,14 +9,16 @@ import shutil
 
 k_data_dir = "data"
 
-def init(app_name):
-    random.seed(time.time())
+class Utils:
+    def initialize(app_name):
+        random.seed(time.time())
 
-    data_path = GetDataPath(app_name) + "/" + k_data_dir
-    if not os.path.isdir(data_path):
-        os.mkdir(data_path)
-    os.chdir(data_path)
+        data_path = GetDataPath(app_name) + "/" + k_data_dir
+        if not os.path.isdir(data_path):
+            os.mkdir(data_path)
+        os.chdir(data_path)
 
+# TODO snake_case
 def GetWindowsEnvVar(var_name):
     return subprocess.run(["cmd.exe", "/c", "echo", "%" + var_name + "%"], capture_output=True).stdout.strip().decode("utf-8")
 

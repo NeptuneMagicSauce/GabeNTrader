@@ -1,5 +1,6 @@
 import re
 
+from instances import *
 from network import *
 from utils import *
 
@@ -11,7 +12,7 @@ def GetUserId():
     except:
         pass
 
-    c = fetcher.get_text("https://steamcommunity.com/my/profile")
+    c = Instances.fetcher.get_text("https://steamcommunity.com/my/profile")
     if c is None:
         return None
 
