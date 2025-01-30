@@ -9,6 +9,7 @@ import sys
 os.chdir(os.path.dirname(os.path.abspath(os.path.realpath(__file__)))) # chdir to main.py
 sys.path.append("src")
 
+from instances import *
 from cookie import *
 from utils import *
 from network import *
@@ -31,13 +32,13 @@ def GetItems():
 
     cache_path = "items.pkl"
     try:
-        items = pickle_load(cache_path) #pickle.load(open(cache_path, 'rb'))
+        items = pickle_load(cache_path)
         index = len(items)
         print("InCache:", index)
     except:
         print("Failed to load cache from " + cache_path)
 
-    item_count_json = fetcher.get_json("https://steamcommunity.com/market/search/render/?search_descriptions=0&sort_column=default&sort_dir=desc&appid="+k_game_id+"&norender=1&count=1")
+    item_count_json = Instances.fetcher.get_json("https://steamcommunity.com/market/search/render/?search_descriptions=0&sort_column=default&sort_dir=desc&appid="+k_game_id+"&norender=1&count=1")
 
     if item_count_json is None:
         exit(1)
@@ -60,7 +61,7 @@ def GetItems():
 
     while index < item_count:
 
-        items_json = fetcher.get_json("https://steamcommunity.com/market/search/render/?start=" + str(index) + "&search_descriptions=0&sort_column=default&sort_dir=desc&appid=" + k_game_id + "&norender=1&count=" + str(k_item_per_req))
+        items_json = Instances.fetcher.get_json("https://steamcommunity.com/market/search/render/?start=" + str(index) + "&search_descriptions=0&sort_column=default&sort_dir=desc&appid=" + k_game_id + "&norender=1&count=" + str(k_item_per_req))
 
         if items_json is None:
             print("json parsing returned None")
@@ -110,13 +111,16 @@ def GetItems():
 ### MAIN ###
 ############
 
-init(k_app_name)
-fetcher.initialize(GetCookie())
+Utils.initialize(k_app_name)
+
+Cookie.initialize()
+
+Instances.fetcher = Fetcher(Instances.cookie)
 
 GetItems()
 
-id = GetUserId()
-print('UserId:', id)
+Instances.user_id = GetUserId()
+print('UserId:', Instances.user_id)
 
 # TODO test the cookie, it must load the private inventory
 # TODO invalidate cache if total_count change

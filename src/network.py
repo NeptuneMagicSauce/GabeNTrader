@@ -4,6 +4,8 @@ import time
 import sys
 from enum import Enum
 
+from instances import *
+
 class RateLimiter:
     def __init__(self, period):
         self.period = period
@@ -25,16 +27,13 @@ class Fetcher(RateLimiter):
         Text = 2
         Binary = 3
 
-    def initialize(self, cookie):
-        self.cookie = cookie
-        # print(cookie)
-
-    def __init__(self):
+    def __init__(self, cookie):
         super().__init__(period=2.5)
                          # 10.0)
                          #3.0)
                          # 2.5)
-        self.cookie = ''
+        self.cookie = cookie
+        print('Cookie:', cookie['steamLoginSecure'][:50], '(...)')
 
     def get_json(self, url):
         return Fetcher.convert(self.get(url), Fetcher.Expect.JSON)
@@ -81,5 +80,3 @@ class Fetcher(RateLimiter):
             print(response.reason, response.status_code, "from", response.url)
             return False
         return True
-
-fetcher = Fetcher()
