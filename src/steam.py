@@ -6,7 +6,7 @@ from utils import *
 
 k_userid_path = "userid"
 
-def GetUserId():
+def get_user_id():
     try:
         return pickle_load(k_userid_path)
     except:
