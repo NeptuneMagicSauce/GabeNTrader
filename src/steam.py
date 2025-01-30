@@ -15,27 +15,24 @@ def GetUserId():
     if c is None:
         return None
 
-    regexp = re.compile('g_steamID\\s=\\s"(.*)"')
+    regexp_authenticated = re.compile('g_steamID\\s=\\s"([0-9]*)"')
+    regexp_anonymous = re.compile('g_steamID\\s=\\s([A-z]*);')
 
     for l in c.splitlines():
-        match = regexp.search(l)
-        if match:
-            groups = match.groups()
-            if len(groups):
-                id = groups[0]
-                try:
-                    ret = int(id)
-                except:
-                    print('failed to convert user id to string', l)
-                    return None
-                try:
-                    pickle_save(ret, k_userid_path, compress=False)
-                except:
-                    pass
-                return ret
-            else:
-                print('user id: regexp matched but no groups')
+        if match := regexp_authenticated.search(l):
+            try:
+                ret = int(match.groups()[0])
+            except:
+                print('failed to convert user id to string', l, match.groups()[0], sep='\n')
+            try:
+                pickle_save(ret, k_userid_path)
+            except:
+                pass
+            return ret
+        if match := regexp_anonymous.search(l):
+            # print('match the non-authenticated user id:', match.groups()[0])
+            break
     return None
 
 # TODO run in parallel as soon as possible
-# TODO invalidate cache: if cookie changed or if change account
+# TODO invalidate cache: if cookie (empty or newer) or if change account
