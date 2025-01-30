@@ -33,12 +33,14 @@ def GetCookie():
                     latest_profile = name
 
         if latest_profile is None:
-            raise Exception("no profiles in " + path)
+            print("no profiles in", path)
+            return {}
 
         path = latest_profile + "/" + "cookies.sqlite"
 
         if not os.path.isfile(path):
-            raise Exception("does not exist: " + path)
+            print("not a file:", path)
+            return {}
 
         with tempfile.NamedTemporaryFile(delete=True) as tmp:
             shutil.copy(path, tmp.name)
@@ -54,4 +56,4 @@ def GetCookie():
             print("failed to find cookie in matches:", matches)
     except Exception as e:
         print(e)
-    return ""
+    return {}
