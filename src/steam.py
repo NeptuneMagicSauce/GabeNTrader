@@ -4,40 +4,52 @@ from instances import *
 from network import *
 from utils import *
 
-def get_user_id():
+class Steam:
+    def initialize():
+        Instances.user_id = Steam.get_user_id()
+        Instances.cookie_is_valid = Instances.user_id is not None
+        print('UserId:', Instances.user_id)
+        print('CookieIsValid:', Instances.cookie_is_valid)
 
-    k_userid_path = "userid"
+    def get_user_id():
 
-    if len(Instances.cookie):
-        # cookie is not empty
-        # load from cache
-        try:
-            return pickle_load(k_userid_path)
-        except:
-            pass
+        k_userid_path = "userid"
 
-    c = Instances.fetcher.get_text("https://steamcommunity.com/my/profile")
-    if c is None:
-        return None
-
-    regexp_authenticated = re.compile('g_steamID\\s=\\s"([0-9]*)"')
-    regexp_anonymous = re.compile('g_steamID\\s=\\s([A-z]*);')
-
-    for l in c.splitlines():
-        if match := regexp_authenticated.search(l):
+        if len(Instances.cookie):
+            # cookie is not empty
+            # load from cache
             try:
-                ret = int(match.groups()[0])
-            except:
-                print('failed to convert user id to string', l, match.groups()[0], sep='\n')
-            try:
-                pickle_save(ret, k_userid_path)
+                return pickle_load(k_userid_path)
             except:
                 pass
-            return ret
-        if match := regexp_anonymous.search(l):
-            # print('match the non-authenticated user id:', match.groups()[0])
-            break
-    return None
+
+        c = Instances.fetcher.get_text("https://steamcommunity.com/my/profile")
+        if c is None:
+            return None
+
+        regexp_authenticated = re.compile('g_steamID\\s=\\s"([0-9]*)"')
+        regexp_anonymous = re.compile('g_steamID\\s=\\s([A-z]*);')
+
+        for l in c.splitlines():
+            if match := regexp_authenticated.search(l):
+                try:
+                    ret = int(match.groups()[0])
+                except:
+                    print('failed to convert user id to string', l, match.groups()[0], sep='\n')
+                    break
+
+                try:
+                    pickle_save(ret, k_userid_path)
+                except:
+                    pass
+
+                return ret
+
+            if match := regexp_anonymous.search(l):
+                # print('match the non-authenticated user id:', match.groups()[0])
+                break
+
+            return None
 
 # TODO run in parallel as soon as possible
 # TODO invalidate cached user_id: if account changed
