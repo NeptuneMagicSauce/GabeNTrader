@@ -4,6 +4,7 @@ import requests
 import json
 import time
 import sys
+from enum import Enum
 
 class RateLimiter:
     def __init__(self, period):
@@ -21,6 +22,11 @@ class RateLimiter:
         self.last_time = time.time()
 
 class Fetcher(RateLimiter):
+    class Expect(Enum):
+        JSON = 1
+        Text = 2
+        Binary = 3
+
     def initialize(self, cookie):
         self.cookie = cookie
         # print(cookie)
@@ -32,22 +38,45 @@ class Fetcher(RateLimiter):
                          # 2.5)
         self.cookie = ''
 
+    def get_json(self, url):
+        response = self.get(url)
+        return Fetcher.convert(response, Fetcher.Expect.JSON)
+
     def get(self, url):
         self.tick()
         ret = requests.get(url, cookies=self.cookie)
-
-        with open('.latest.code', 'w') as c, open('.latest.json', 'w') as j, open('.latest.url', 'w') as u:
-            print(ret.status_code, file=c)
-            print(ret.url, file=u)
-            if ret.status_code == requests.codes.ok:
-                # print(ret.json(), file=j) # requests.json() fails to parse with jq
-                print(json.dumps(json.loads(ret.content), indent=1), file=j)
-            else:
-                print('', file=j)
+        try:
+            print(ret.status_code, file=open(".latest.code", "w"))
+            print(ret.url, file=open(".latest.url", "w"))
+        except:
+            pass
         return ret
-    def check(request):
-        if request.status_code != requests.codes.ok:
-            print(request.reason, request.status_code, "from", request.url)
+
+    def convert(response, expect):
+        if not Fetcher.check(response):
+            return None
+        match expect:
+            case Fetcher.Expect.JSON:
+                try:
+                    # response.json() # this fails to parse with jq
+                    ret = json.loads(response.content)
+                    try:
+                        print(json.dumps(ret, indent=1), file=open(".latest.json", "w"))
+                    except:
+                        pass
+                    return ret
+                except:
+                    print("failed to parse JSON for", response.url)
+                    return None
+            case Fetcher.Expect.Text:
+                return response.text
+            case Fetcher.Expect.Binary:
+                return response.content
+        return None
+
+    def check(response):
+        if response.status_code != requests.codes.ok:
+            print(response.reason, response.status_code, "from", response.url)
             return False
         return True
 
