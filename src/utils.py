@@ -6,10 +6,17 @@ import random
 import pickle
 import gzip
 import shutil
+from enum import Enum
+import tempfile
+import string
 
 class Utils:
     def initialize(app_name):
         random.seed(time.time())
+        if 'WSL_DISTRO_NAME' in os.environ:
+            OScompat.id = OScompat.ID.WSL
+        else:
+            OScompat.id = OScompat.ID.Windows
 
         k_data_dir = "data"
         data_path = get_data_path(app_name) + "/" + k_data_dir
@@ -17,21 +24,39 @@ class Utils:
             os.mkdir(data_path)
         os.chdir(data_path)
 
+
+class OScompat:
+    class ID(Enum):
+        Undetected = 0
+        Windows = 1
+        WSL = 2
+    id = ID.Undetected
+
 def get_windows_env_var(var_name):
     return subprocess.run(["cmd.exe", "/c", "echo", "%" + var_name + "%"], capture_output=True).stdout.strip().decode("utf-8")
 
-def convert_path_to_wsl(path):
+def convert_path(path):
     if len(path) < 2:
         return path
 
     path = path.replace('\\', '/')
 
-    # 'C:' -> '/c'
-    first_char, second_char = path[0], path[1]
-    if first_char.isalpha() and second_char == ':':
-        path = '/' + first_char.lower() + path[2:]
+    match OScompat.id:
+        case OScompat.ID.WSL:
+            # 'C:' -> '/c'
+            first_char, second_char = path[0], path[1]
+            if first_char.isalpha() and second_char == ':':
+                path = '/' + first_char.lower() + path[2:]
 
     return path
+
+def get_firefox_dir():
+    if OScompat.id in [ OScompat.ID.Windows, OScompat.ID.WSL ]:
+        path = get_windows_env_var("APPDATA")
+        path = convert_path(path)
+        path = path + "/Mozilla/Firefox/Profiles/"
+        return path
+    raise
 
 def remove_trailing_slash(path):
     return path[:-1] if path.endswith("/") else path
@@ -40,7 +65,7 @@ def remove_trailing_slash(path):
 def get_data_path(app_name):
     local_app_data = get_windows_env_var("LOCALAPPDATA")
 
-    local_app_data = convert_path_to_wsl(local_app_data)
+    local_app_data = convert_path(local_app_data)
     local_app_data = remove_trailing_slash(local_app_data)
 
     path = local_app_data + "/" + app_name
@@ -99,3 +124,6 @@ def pickle_load(path):
         except:
             pass
     raise
+def temp_file_path():
+    # tempfile.[Named]TemporaryFile() fails to be compatible with wsl and mingw
+    return tempfile.gettempdir() + "/" + ''.join(random.choices(string.ascii_uppercase, k=8))

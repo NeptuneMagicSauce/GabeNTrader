@@ -123,6 +123,9 @@ Cookie.refresh_cookie_if_invalid()
 
 get_items()
 
+# TODO cookie: ask to login in webview and use its cookie?
+# TODO cookie: use the one from chrome?
+
 # TODO invalidate cached items if total_count changed
 # needs another serialized bit: is pickle finished?
 # because cache size can not be compared without that
