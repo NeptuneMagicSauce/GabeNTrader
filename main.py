@@ -85,6 +85,7 @@ def get_items():
         index += count
         progress.tick(fetched)
 
+    # TODO only save to cache if recomputed
     pickle_save(items, cache_path)
 
     # extract hash_name

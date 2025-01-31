@@ -83,10 +83,9 @@ def pickle_compress_suffix(compress):
 
 def pickle_save(data, path, compress=True):
     suffix = pickle_compress_suffix(compress)
-    backup = path + ".backup" + suffix
     path = path + suffix
     try:
-        # TODO hide backup
+        backup = "." + path + ".backup"
         shutil.copy(path, backup)
     except:
         pass
