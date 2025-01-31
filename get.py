@@ -11,17 +11,17 @@ import tempfile
 # todo option no-cookie
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.realpath(__file__))) + "/src")
-from cookie import *
-from network import *
 
-cookie = GetCookie()
+from cookie import *
+
+Cookie.initialize()
 
 if len(sys.argv) != 2:
     print("Usage:", sys.argv[0], "url_to_fetch")
     exit(1)
 url = sys.argv[1]
 
-req = requests.get(url, cookies=cookie)
+req = requests.get(url, cookies=Instances.cookie) #cookie)
 
 if not Fetcher.check(req):
     exit(1)
