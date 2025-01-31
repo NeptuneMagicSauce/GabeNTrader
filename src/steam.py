@@ -6,23 +6,17 @@ from utils import *
 
 class Steam:
     def initialize():
-        # TODO same pattern as cookie initialize/get
-        Instances.user_id = Steam.get_user_id()
+        k_userid_path = "userid"
+        try:
+            Instances.user_id = pickle_load(k_userid_path)
+        except:
+            Instances.user_id = Steam.get_user_id()
+            pickle_save(Instances.user_id, k_userid_path)
+
         Instances.cookie_is_valid = Instances.user_id is not None
         print('UserId:', Instances.user_id)
 
     def get_user_id():
-
-        k_userid_path = "userid"
-
-        if len(Instances.cookie):
-            # cookie is not empty
-            # load from cache
-            try:
-                return pickle_load(k_userid_path)
-            except:
-                pass
-
         c = Instances.fetcher.get_text("https://steamcommunity.com/my/profile")
         if c is None:
             return None
@@ -37,11 +31,6 @@ class Steam:
                 except:
                     print('failed to convert user id to string', l, match.groups()[0], sep='\n')
                     break
-
-                try:
-                    pickle_save(ret, k_userid_path)
-                except:
-                    pass
                 return ret
 
             if match := regexp_anonymous.search(l):
@@ -50,6 +39,5 @@ class Steam:
 
         return None
 
-# TODO invalidate cached user_id if cookie changed
 # TODO run in parallel as soon as possible
-# TODO invalidate cached user_id: if account changed
+# TODO invalidate cached user_id if account changed
