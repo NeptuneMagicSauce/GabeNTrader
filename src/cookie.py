@@ -20,7 +20,9 @@ class Cookie:
             Instances.cookie = pickle_load(k_cookie_path)
         except:
             Instances.cookie = Cookie.get_cookie()
-            pickle_save(Instances.cookie, k_cookie_path)
+            if len(Instances.cookie):
+                # if cookie is not empty
+                pickle_save(Instances.cookie, k_cookie_path)
         print('Cookie:', Instances.cookie['steamLoginSecure'][:50] + ' ...' if len(Instances.cookie) else {})
 
     def get_cookie():
