@@ -86,6 +86,7 @@ def pickle_save(data, path, compress=True):
     backup = path + ".backup" + suffix
     path = path + suffix
     try:
+        # TODO hide backup
         shutil.copy(path, backup)
     except:
         pass

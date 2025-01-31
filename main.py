@@ -118,11 +118,14 @@ Network.initialize()
 
 Steam.initialize()
 
+Cookie.refresh_cookie_if_invalid()
+
 get_items()
+
+# TODO cache the cookie
+# TODO invalidate the cached cookie if it fails to be validated
 
 # TODO invalidate cached items if total_count changed
 # needs another serialized bit: is pickle finished?
 # because cache size can not be compared without that
-# TODO refresh cookie only if needed, pickle it
-# TODO invalidate cached user_id if cookie changed
 # TODO list inventory

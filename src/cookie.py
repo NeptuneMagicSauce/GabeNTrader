@@ -6,12 +6,23 @@ import shutil
 
 from instances import *
 from utils import *
-
+from network import *
+from steam import *
 
 class Cookie:
+
     def initialize():
         # gets the steamcommunity.com login cookie
         # supports Firefox on Windows WSL
+
+        k_cookie_path = "cookie"
+        try:
+            Instances.cookie = pickle_load(k_cookie_path)
+        except:
+            Instances.cookie = Cookie.get_cookie()
+            pickle_save(Instances.cookie, k_cookie_path)
+
+    def get_cookie():
 
         k_web_domain = "steamcommunity.com"
         k_cookie_key = "steamLoginSecure"
@@ -38,13 +49,13 @@ class Cookie:
 
             if latest_profile is None:
                 print("no profiles in", path)
-                return
+                return {}
 
             path = latest_profile + "/" + "cookies.sqlite"
 
             if not os.path.isfile(path):
                 print("not a file:", path)
-                return
+                return {}
 
             with tempfile.NamedTemporaryFile(delete=True) as tmp:
                 shutil.copy(path, tmp.name)
@@ -56,8 +67,18 @@ class Cookie:
                     if isinstance(first_match, tuple) and len(first_match) > 0:
                         cookie_value = first_match[0]
                         if isinstance(cookie_value, str):
-                            Instances.cookie = { k_cookie_key: cookie_value }
-                            return
+                            return { k_cookie_key: cookie_value }
+
                 print("failed to find cookie in matches:", matches)
         except Exception as e:
             print(e)
+        return {}
+
+    def refresh_cookie_if_invalid():
+        print('CookieIsValid:', Instances.cookie_is_valid)
+        if not Instances.cookie_is_valid and len(Instances.cookie):
+            # if cookie not valid
+            # and cookie could be retrieved
+            Cookie.initialize() # refresh the cookie
+            Network.initialize() # consume the new cookie
+            Steam.initialize() # re-validate the new cookie

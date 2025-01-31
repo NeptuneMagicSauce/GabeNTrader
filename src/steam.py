@@ -6,10 +6,10 @@ from utils import *
 
 class Steam:
     def initialize():
+        # TODO same pattern as cookie initialize/get
         Instances.user_id = Steam.get_user_id()
         Instances.cookie_is_valid = Instances.user_id is not None
         print('UserId:', Instances.user_id)
-        print('CookieIsValid:', Instances.cookie_is_valid)
 
     def get_user_id():
 
@@ -42,14 +42,14 @@ class Steam:
                     pickle_save(ret, k_userid_path)
                 except:
                     pass
-
                 return ret
 
             if match := regexp_anonymous.search(l):
                 # print('match the non-authenticated user id:', match.groups()[0])
                 break
 
-            return None
+        return None
 
+# TODO invalidate cached user_id if cookie changed
 # TODO run in parallel as soon as possible
 # TODO invalidate cached user_id: if account changed
