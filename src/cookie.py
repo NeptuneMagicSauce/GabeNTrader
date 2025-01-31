@@ -31,12 +31,7 @@ class Cookie:
         k_cookie_key = "steamLoginSecure"
 
         try:
-            path = get_windows_env_var("APPDATA")
-
-            # WSL compatibility here
-            path = convert_path_to_wsl(path)
-
-            path = path + "/Mozilla/Firefox/Profiles/"
+            path = get_firefox_dir()
 
             latest_profile = None
             for profile in os.scandir(path):
@@ -59,20 +54,20 @@ class Cookie:
             if not os.path.isfile(path):
                 print("not a file:", path)
                 return {}
+            tmp = temp_file_path()
+            shutil.copy(path, tmp)
+            db = sqlite3.connect(tmp)
 
-            with tempfile.NamedTemporaryFile(delete=True) as tmp:
-                shutil.copy(path, tmp.name)
-                db = sqlite3.connect(tmp.name)
-                # db.execute("select * from moz_cookies").fetchall()
-                matches = db.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '" and originAttributes=""').fetchall()
-                if len(matches) > 0:
-                    first_match = matches[0]
-                    if isinstance(first_match, tuple) and len(first_match) > 0:
-                        cookie_value = first_match[0]
-                        if isinstance(cookie_value, str):
-                            return { k_cookie_key: cookie_value }
+            # db.execute("select * from moz_cookies").fetchall()
+            matches = db.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '" and originAttributes=""').fetchall()
+            if len(matches) > 0:
+                first_match = matches[0]
+                if isinstance(first_match, tuple) and len(first_match) > 0:
+                    cookie_value = first_match[0]
+                    if isinstance(cookie_value, str):
+                        return { k_cookie_key: cookie_value }
 
-                print("failed to find cookie in matches:", matches)
+            print("failed to find cookie in matches:", matches)
         except Exception as e:
             print(e)
         return {}
