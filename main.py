@@ -6,8 +6,8 @@ import pickle
 import os
 import sys
 
-os.chdir(os.path.dirname(os.path.abspath(os.path.realpath(__file__)))) # chdir to main.py
-sys.path.append("src")
+# find library files in /src like this:
+sys.path.append(os.path.dirname(os.path.abspath(os.path.realpath(__file__))) + '/src')
 
 from instances import *
 from cookie import *
