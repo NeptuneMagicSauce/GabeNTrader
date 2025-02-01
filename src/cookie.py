@@ -27,9 +27,6 @@ class Cookie:
     def get_cookie_firefox_win32():
         # supports Firefox on Windows WSL
 
-        k_web_domain = "steamcommunity.com"
-        k_cookie_key = "steamLoginSecure"
-
         try:
             path = get_firefox_dir()
 
@@ -55,6 +52,17 @@ class Cookie:
                 print("not a file:", path)
                 return {}
 
+            return Cookie.get_cookie_from_file(path)
+        except Exception as e:
+            print(e)
+            return {}
+
+    def get_cookie_from_file(path):
+        # describe_function()
+
+        k_web_domain = "steamcommunity.com"
+        k_cookie_key = "steamLoginSecure"
+        try:
             db = sqlite_copy_db(path)
 
             matches = db.con.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '" and originAttributes=""').fetchall()
