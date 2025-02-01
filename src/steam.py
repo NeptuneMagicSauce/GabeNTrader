@@ -10,13 +10,32 @@ class Steam:
         try:
             Instances.user_id = pickle_load(k_userid_path)
         except:
-            Instances.user_id = Steam.get_user_id()
-            pickle_save(Instances.user_id, k_userid_path)
+            Instances.user_id = Steam.get_user_id_from_chattoken()
+            if Instances.user_id is not None:
+                pickle_save(Instances.user_id, k_userid_path)
 
         Instances.cookie_is_valid = Instances.user_id is not None
         print('UserId:', Instances.user_id)
 
-    def get_user_id():
+
+    def get_user_id_from_chattoken():
+        c = Instances.fetcher.get_json('https://steamcommunity.com/chat/clientjstoken')
+        # {
+        #  "logged_in": false,
+        #  "steamid": "",
+        #  "accountid": 0,
+        #  "account_name": "",
+        #  "token": ""
+        # }
+        if c is None:
+            return None
+        try:
+            return int(c['steamid'])
+        except:
+            pass
+
+    # deprecated by get_user_id_from_chattoken()
+    def get_user_id_from_profile():
         c = Instances.fetcher.get_text("https://steamcommunity.com/my/profile")
         if c is None:
             return None
