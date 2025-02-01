@@ -10,14 +10,12 @@ import shutil
 from enum import Enum
 import tempfile
 import string
+import inspect
 
 class Utils:
     def initialize(app_name):
         random.seed(time.time())
-        if 'WSL_DISTRO_NAME' in os.environ:
-            OScompat.id = OScompat.ID.WSL
-        else:
-            OScompat.id = OScompat.ID.Windows
+        OScompat.initialize()
 
         k_data_dir = "data"
         data_path = get_data_path(app_name) + "/" + k_data_dir
@@ -32,6 +30,14 @@ class OScompat:
         Windows = 1
         WSL = 2
     id = ID.Undetected
+    id_str = ''
+    def initialize():
+        if 'WSL_DISTRO_NAME' in os.environ:
+            OScompat.id = OScompat.ID.WSL
+        else:
+            OScompat.id = OScompat.ID.Windows
+        OScompat.id_str = str(OScompat.id).split('.')[1]
+        print('OS:', OScompat.id_str)
 
 def get_windows_env_var(var_name):
     return subprocess.run(["cmd.exe", "/c", "echo", "%" + var_name + "%"], capture_output=True).stdout.strip().decode("utf-8")
@@ -56,7 +62,7 @@ def get_firefox_dir():
         path = get_windows_env_var("APPDATA")
         path = convert_path(path)
         path = path + "/Mozilla/Firefox/Profiles/"
-        return path
+        return remove_trailing_slash(path)
     raise
 
 def remove_trailing_slash(path):
@@ -139,3 +145,12 @@ class sqlite_copy_db():
         # print('deleting temporary copy', self.tmppath)
         self.con.close()
         os.remove(self.tmppath)
+
+def describe_function():
+    caller = inspect.currentframe().f_back
+    if caller is None:
+        return
+    print('function:', caller.f_code.co_name)
+    args = inspect.getargvalues(caller).locals
+    for i in args:
+        print('  arg', i, '=', args[i])
