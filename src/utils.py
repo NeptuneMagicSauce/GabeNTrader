@@ -1,3 +1,4 @@
+import sqlite3
 import subprocess
 import sys
 import os
@@ -127,3 +128,14 @@ def pickle_load(path):
 def temp_file_path():
     # tempfile.[Named]TemporaryFile() fails to be compatible with wsl and mingw
     return tempfile.gettempdir() + "/" + ''.join(random.choices(string.ascii_uppercase, k=8))
+
+class sqlite_copy_db():
+    def __init__(self, path):
+        self.tmppath = temp_file_path()
+        # print(path, '->', self.tmppath)
+        shutil.copy(path, self.tmppath)
+        self.con = sqlite3.connect(self.tmppath)
+    def __del__(self):
+        # print('deleting temporary copy', self.tmppath)
+        self.con.close()
+        os.remove(self.tmppath)
