@@ -33,6 +33,8 @@ class Cookie:
             latest_profile = None
             for profile in os.scandir(path):
                 name = path + "/" + profile.name
+                if not os.path.isdir(name):
+                    continue
                 if latest_profile == None:
                     latest_profile = name
                     latest_time = profile.stat().st_mtime
@@ -58,22 +60,20 @@ class Cookie:
             return {}
 
     def get_cookie_from_file(path):
-        # describe_function()
 
         k_web_domain = "steamcommunity.com"
         k_cookie_key = "steamLoginSecure"
         try:
             db = sqlite_copy_db(path)
+            cursor = db.con.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '"')
+            first_match = cursor.fetchone()
 
-            matches = db.con.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '" and originAttributes=""').fetchall()
-            if len(matches) > 0:
-                first_match = matches[0]
-                if isinstance(first_match, tuple) and len(first_match) > 0:
-                    cookie_value = first_match[0]
-                    if isinstance(cookie_value, str):
-                        return { k_cookie_key: cookie_value }
+            del(cursor) # otherwise it fails to delete file held by sqlite
 
-            print("failed to find cookie in matches:", matches)
+            if first_match is not None and len(first_match):
+                return { k_cookie_key: first_match[0] }
+
+            print('failed to find cookie with sqlite')
         except Exception as e:
             print(e)
         return {}
