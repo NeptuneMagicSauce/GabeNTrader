@@ -13,19 +13,19 @@ class Cookie:
 
     def initialize():
         # gets the steamcommunity.com login cookie
-        # supports Firefox on Windows WSL
 
         k_cookie_path = "cookie"
         try:
             Instances.cookie = pickle_load(k_cookie_path)
         except:
-            Instances.cookie = Cookie.get_cookie()
+            Instances.cookie = Cookie.get_cookie_firefox_win32()
             if len(Instances.cookie):
                 # if cookie is not empty
                 pickle_save(Instances.cookie, k_cookie_path)
         print('Cookie:', Instances.cookie['steamLoginSecure'][:50] + ' ...' if len(Instances.cookie) else {})
 
-    def get_cookie():
+    def get_cookie_firefox_win32():
+        # supports Firefox on Windows WSL
 
         k_web_domain = "steamcommunity.com"
         k_cookie_key = "steamLoginSecure"
@@ -54,12 +54,10 @@ class Cookie:
             if not os.path.isfile(path):
                 print("not a file:", path)
                 return {}
-            tmp = temp_file_path()
-            shutil.copy(path, tmp)
-            db = sqlite3.connect(tmp)
 
-            # db.execute("select * from moz_cookies").fetchall()
-            matches = db.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '" and originAttributes=""').fetchall()
+            db = sqlite_copy_db(path)
+
+            matches = db.con.execute('select value from moz_cookies where host="' + k_web_domain + '" and name="' + k_cookie_key + '" and originAttributes=""').fetchall()
             if len(matches) > 0:
                 first_match = matches[0]
                 if isinstance(first_match, tuple) and len(first_match) > 0:
