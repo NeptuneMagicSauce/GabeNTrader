@@ -14,6 +14,7 @@ sys.path.append(os.path.dirname(os.path.abspath(os.path.realpath(__file__))) + "
 
 from cookie import *
 
+Utils.initialize('GabeNTrader')
 Cookie.initialize()
 
 if len(sys.argv) != 2:
