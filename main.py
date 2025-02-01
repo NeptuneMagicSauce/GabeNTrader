@@ -121,6 +121,12 @@ Steam.initialize()
 
 Cookie.refresh_cookie_if_invalid()
 
+if not Instances.cookie_is_valid:
+    print('no valid cookie, exiting')
+    exit(1)
+
+Steam.get_user_name()
+
 get_items()
 
 # TODO cookie: ask to login in webview and use its cookie?

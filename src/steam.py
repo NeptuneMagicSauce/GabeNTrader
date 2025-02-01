@@ -58,5 +58,16 @@ class Steam:
 
         return None
 
+    def get_user_name():
+        if c := Instances.fetcher.get_json('https://steamcommunity.com/profiles/' + str(Instances.user_id) + '/ajaxaliases'):
+            if len(c) and 'newname' in c[0]:
+                n = c[0]['newname']
+                if OScompat.id == OScompat.ID.Windows:
+                    # special chars fail on windows terminal
+                    n = n.encode('ascii', 'ignore').decode("utf-8")
+                Instances.user_name = n
+                print('UserName:', Instances.user_name)
+
+
 # TODO run in parallel as soon as possible
 # TODO invalidate cached user_id if account changed
