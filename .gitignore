@@ -4,3 +4,4 @@ latest*.json
 .ignored
 .pycache/
 test.py
+notes.md
