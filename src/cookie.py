@@ -1,3 +1,4 @@
+import time
 import webview
 import sqlite3
 import subprocess
@@ -23,8 +24,8 @@ class Cookie:
             Instances.cookie = pickle_load(k_cookie_path)
         except:
             # Instances.cookie = Cookie.get_cookie_firefox_installed_win32()
-            Instances.cookie = Cookie.get_cookie_webview()
-            if Instances.cookie is not None and len(Instances.cookie):
+            Instances.cookie = Cookie.get_cookie_webview().get()
+            if len(Instances.cookie):
                 # if cookie is not empty
                 pickle_save(Instances.cookie, k_cookie_path)
         print('Cookie:', Instances.cookie['steamLoginSecure'][:50] + ' ...' if Instances.cookie is not None and len(Instances.cookie) else {})
@@ -90,14 +91,47 @@ class Cookie:
             Network.initialize() # consume the new cookie
             Steam.initialize() # re-validate the new cookie
 
-    def get_cookie_webview():
-        k_webview_storage = os.getcwd() + '/webview/' + OScompat.id_str
-        # print('Storage:', k_webview_storage)
-        def read_cookies(window):
-            cookies = window.get_cookies()
-            for c in cookies:
-                for d in c.items():
-                    # d is tuple, 0 is str key, 1 is morsel
-                    print('StoredCookie:', d[0], '=', d[1].value)
-        w = webview.create_window('', 'https://steamcommunity.com/login/home')
-        webview.start(read_cookies, w, private_mode=False, storage_path=k_webview_storage)
+    class get_cookie_webview:
+        # needs to be a class to share data between threads
+
+        def get(self):
+            k_webview_storage = os.getcwd() + '/webview/' + OScompat.id_str
+            # print('Storage:', k_webview_storage)
+
+            self.cookie_value = ''
+            self.window = webview.create_window('', 'https://steamcommunity.com/login/home',
+                                                hidden=True, height=800)
+
+            def find_cookie(window):
+                # ! not the main thread, it's the webview thread
+
+                while True:
+                    if window is None:
+                        # this webview was closed
+                        break
+
+                    cookies = window.get_cookies()
+                    # cookie.items() is dict_items
+                    # item is tuple, 0 is str key, 1 is morsel
+
+                    if cookies is None:
+                        break
+
+                    if cookie := next(filter(lambda c:
+                                             list(c.items())[0][0] == Cookie.k_cookie_key, cookies), None):
+                        self.cookie_value = list(cookie.items())[0][1].value
+                        # if window is hidden (on first launch)
+                        # we must quit the webview before returning
+                        # otherwise we're stuck
+                        self.window.destroy()
+                        return
+
+                    window.show()
+                    time.sleep(0.5)
+
+            webview.start(find_cookie, self.window, private_mode=False, storage_path=k_webview_storage)
+
+            if not len(self.cookie_value):
+                return {}
+
+            return { Cookie.k_cookie_key: self.cookie_value }
