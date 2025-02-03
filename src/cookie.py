@@ -102,6 +102,9 @@ class Cookie:
     class get_cookie_webview:
         # needs to be a class to share data between threads
 
+        def sleep(self):
+            time.sleep(0.05)
+
         def get(self):
             k_webview_storage = os.getcwd() + '/webview/' + OScompat.id_str
             k_expect_slow_start = True if OScompat.id == OScompat.ID.WSL else False
@@ -111,31 +114,47 @@ class Cookie:
                 print('Getting the login information ...', flush=True)
 
             self.cookie_value = ''
-            self.window = webview.create_window('', 'https://steamcommunity.com/login/home',
-                                                hidden=k_support_hidden_start,
-                                                height=800)
+            self.k_url = 'https://steamcommunity.com/login/home'
+            self.window = webview.create_window('', self.k_url, hidden=k_support_hidden_start, height=800)
+            self.is_running = True # needed on WSL for thread termination
+
             def find_cookie():
                 # ! not the main thread, it's the webview thread
 
-                while True:
+                while self.is_running:
                     if self.window is None:
                         # this webview was closed
                         # or we're called too early
-                        time.sleep(0.5)
-                        break
+                        self.sleep()
+                        continue
+
+                    try:
+                        url = self.window.get_current_url()
+                    except Exception as e:
+                        print('get_url failed:', e)
+                        self.sleep()
+                        continue
+
+                    if url is None:
+                        continue
+
+                    # restrict to the unique url
+                    if not url == self.k_url:
+                        self.window.load_url(self.k_url)
 
                     try:
                         cookies = self.window.get_cookies()
                     except Exception as e:
                         print('get_cookies failed:', e)
-                        time.sleep(0.5)
+                        self.sleep()
                         continue
 
                     # cookie.items() is dict_items
                     # item is tuple, 0 is str key, 1 is morsel
 
                     if cookies is None:
-                        break
+                        self.sleep()
+                        continue
 
                     if cookie := next(filter(lambda c:
                                              list(c.items())[0][0] == Cookie.k_cookie_key, cookies), None):
@@ -145,14 +164,16 @@ class Cookie:
                         # otherwise we're stuck
                         # and if window is not hidden we also want to destroy it
                         self.window.destroy()
-                        return
 
-                    self.window.show() # no effect on WSL
-                    time.sleep(0.5)
+                    # here we did not find the cookie in storage
+                    # so we show the window for logging-in
+                    self.window.show() # no effect on WSL, which is why it started not hidden
+                    self.sleep()
 
             self.window.events.shown += find_cookie
-
             webview.start(private_mode=False, storage_path=k_webview_storage)
+
+            self.is_running = False
 
             if not len(self.cookie_value):
                 return {}
