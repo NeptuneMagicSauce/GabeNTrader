@@ -15,19 +15,19 @@ class Cookie:
 
     k_web_domain = "steamcommunity.com"
     k_cookie_key = "steamLoginSecure"
+    k_cookie_path = "cookie"
 
     def initialize():
         # gets the steamcommunity.com login cookie
 
-        k_cookie_path = "cookie"
         try:
-            Instances.cookie = pickle_load(k_cookie_path)
+            Instances.cookie = pickle_load(Cookie.k_cookie_path)
         except:
             # Instances.cookie = Cookie.get_cookie_firefox_installed_win32()
             Instances.cookie = Cookie.get_cookie_webview().get()
             if len(Instances.cookie):
                 # if cookie is not empty
-                pickle_save(Instances.cookie, k_cookie_path)
+                pickle_save(Instances.cookie, Cookie.k_cookie_path, compress=False)
         print('Cookie:', Instances.cookie['steamLoginSecure'][:50] + ' ...' if Instances.cookie is not None and len(Instances.cookie) else {})
 
     def get_cookie_firefox_installed_win32():
@@ -83,13 +83,21 @@ class Cookie:
         return {}
 
     def refresh_cookie_if_invalid():
-        print('CookieIsValid:', Instances.cookie_is_valid)
+        def print_is_valid():
+            print('CookieIsValid:', Instances.cookie_is_valid)
+        print_is_valid()
         if not Instances.cookie_is_valid and len(Instances.cookie):
             # if cookie not valid
             # and cookie could be retrieved
+            try:
+                # invalidate in cache
+                os.remove(Cookie.k_cookie_path)
+            except:
+                pass
             Cookie.initialize() # refresh the cookie
             Network.initialize() # consume the new cookie
             Steam.initialize() # re-validate the new cookie
+            print_is_valid()
 
     class get_cookie_webview:
         # needs to be a class to share data between threads
