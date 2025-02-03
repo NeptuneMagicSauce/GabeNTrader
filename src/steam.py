@@ -33,6 +33,7 @@ class Steam:
             return int(c['steamid'])
         except:
             pass
+        return None
 
     # deprecated by get_user_id_from_chattoken()
     def get_user_id_from_profile():
