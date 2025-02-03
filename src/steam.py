@@ -6,14 +6,9 @@ from utils import *
 
 class Steam:
     def initialize():
-        k_userid_path = "userid"
-        try:
-            Instances.user_id = pickle_load(k_userid_path)
-        except:
-            Instances.user_id = Steam.get_user_id_from_chattoken()
-            if Instances.user_id is not None:
-                pickle_save(Instances.user_id, k_userid_path)
-
+        # do not cache user_id
+        # because it is used to validate the cookie
+        Instances.user_id = Steam.get_user_id_from_chattoken()
         Instances.cookie_is_valid = Instances.user_id is not None
         print('UserId:', Instances.user_id)
 
