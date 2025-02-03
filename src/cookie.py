@@ -96,21 +96,33 @@ class Cookie:
 
         def get(self):
             k_webview_storage = os.getcwd() + '/webview/' + OScompat.id_str
-            # print('Storage:', k_webview_storage)
+            k_expect_slow_start = True if OScompat.id == OScompat.ID.WSL else False
+            k_support_hidden_start = False if OScompat.id == OScompat.ID.WSL else True
+
+            if k_expect_slow_start:
+                print('Getting the login information ...', flush=True)
 
             self.cookie_value = ''
             self.window = webview.create_window('', 'https://steamcommunity.com/login/home',
-                                                hidden=True, height=800)
-
-            def find_cookie(window):
+                                                hidden=k_support_hidden_start,
+                                                height=800)
+            def find_cookie():
                 # ! not the main thread, it's the webview thread
 
                 while True:
-                    if window is None:
+                    if self.window is None:
                         # this webview was closed
+                        # or we're called too early
+                        time.sleep(0.5)
                         break
 
-                    cookies = window.get_cookies()
+                    try:
+                        cookies = self.window.get_cookies()
+                    except Exception as e:
+                        print('get_cookies failed:', e)
+                        time.sleep(0.5)
+                        continue
+
                     # cookie.items() is dict_items
                     # item is tuple, 0 is str key, 1 is morsel
 
@@ -123,13 +135,16 @@ class Cookie:
                         # if window is hidden (on first launch)
                         # we must quit the webview before returning
                         # otherwise we're stuck
+                        # and if window is not hidden we also want to destroy it
                         self.window.destroy()
                         return
 
-                    window.show()
+                    self.window.show() # no effect on WSL
                     time.sleep(0.5)
 
-            webview.start(find_cookie, self.window, private_mode=False, storage_path=k_webview_storage)
+            self.window.events.shown += find_cookie
+
+            webview.start(private_mode=False, storage_path=k_webview_storage)
 
             if not len(self.cookie_value):
                 return {}
