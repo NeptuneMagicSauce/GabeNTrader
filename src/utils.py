@@ -150,7 +150,7 @@ def describe_function():
     caller = inspect.currentframe().f_back
     if caller is None:
         return
-    print('function:', caller.f_code.co_name)
+    print('function:', caller.f_code.co_name, 'line:', caller.f_lineno)
     args = inspect.getargvalues(caller).locals
     for i in args:
-        print('  arg', i, '=', args[i])
+        print(' [local]', i, '=', args[i])
