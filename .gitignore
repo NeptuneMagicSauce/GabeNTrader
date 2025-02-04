@@ -3,5 +3,5 @@ data
 latest*.json
 .ignored
 .pycache/
-test.py
+test*.py
 notes.md
