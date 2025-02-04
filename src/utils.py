@@ -1,3 +1,4 @@
+import threading
 import sqlite3
 import subprocess
 import sys
@@ -14,6 +15,7 @@ import inspect
 
 class Utils:
     def initialize(app_name):
+        assert(threading.current_thread() is threading.main_thread())
         random.seed(time.time())
         OScompat.initialize()
 
