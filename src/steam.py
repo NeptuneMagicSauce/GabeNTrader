@@ -68,7 +68,3 @@ class Steam:
                     return
         # https://steamcommunity.com/profiles/$user_id/ajaxaliases
         # that's not the current name, that's the previous names
-
-
-# TODO run in parallel as soon as possible
-# TODO invalidate cached user_id if account changed
