@@ -2,6 +2,7 @@
 
 import os
 import sys
+import threading
 
 # find library files in /src like this:
 sys.path.append(os.path.dirname(os.path.abspath(os.path.realpath(__file__))) + '/src')
@@ -12,6 +13,7 @@ from utils import *
 from network import *
 from steam import *
 from data import *
+from gui import *
 
 # import pandas as pd
 # import numpy as np
@@ -19,25 +21,37 @@ from data import *
 # import matplotlib.pyplot as plt
 # import seaborn as sns
 
-
 ############
 ### MAIN ###
 ############
 
+
 Utils.initialize("GabeNTrader")
 
-Cookie.initialize()
+def initialize():
+    print('>>> initialize', threading.current_thread())
 
-Network.initialize()
+    Cookie.initialize()
 
-Steam.initialize()
+    Network.initialize()
 
-Cookie.refresh_cookie_if_invalid()
+    Steam.initialize()
 
-if not Instances.cookie_is_valid:
-    print('no valid cookie, exiting')
-    exit(1)
+    Cookie.refresh_cookie_if_invalid()
 
-Steam.get_user_name()
+    if not Instances.cookie_is_valid:
+        print('no valid cookie, exiting')
+        exit(1)
 
-get_items()
+    Steam.get_user_name()
+
+    get_items()
+
+    print('<<< initialize', threading.current_thread())
+
+
+threading.Thread(target=initialize).start()
+
+GUI.initialize()
+
+exit(GUI.return_code)
