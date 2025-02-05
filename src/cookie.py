@@ -10,17 +10,19 @@ from instances import *
 from utils import *
 from network import *
 from steam import *
+from gui import *
 
 class Cookie:
 
     k_web_domain = "steamcommunity.com"
     k_cookie_key = "steamLoginSecure"
-    k_cookie_path = "cookie"
+    k_cookie_path = "cookie.pkl"
 
     def initialize():
         # gets the steamcommunity.com login cookie
 
         try:
+            # raise
             Instances.cookie = pickle_load(Cookie.k_cookie_path)
         except:
             # Instances.cookie = Cookie.get_cookie_firefox_installed_win32()
@@ -106,7 +108,6 @@ class Cookie:
             time.sleep(0.05)
 
         def get(self):
-            k_webview_storage = os.getcwd() + '/webview/' + OScompat.id_str
             k_expect_slow_start = True if OScompat.id == OScompat.ID.WSL else False
             k_support_hidden_start = False if OScompat.id == OScompat.ID.WSL else True
 
@@ -171,7 +172,11 @@ class Cookie:
                     self.sleep()
 
             self.window.events.shown += find_cookie
-            webview.start(private_mode=False, storage_path=k_webview_storage)
+
+            # pywebview mut be run on main thread = gui thread
+            GUI.wait_for_load()
+            GUI.app.start_webview.emit()
+            GUI.app.webview_finished.wait()
 
             self.is_running = False
 

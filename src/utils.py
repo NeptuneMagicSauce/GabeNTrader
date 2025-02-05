@@ -133,6 +133,7 @@ def pickle_load(path):
         except:
             pass
     raise
+
 def temp_file_path():
     # tempfile.[Named]TemporaryFile() fails to be compatible with wsl and mingw
     return tempfile.gettempdir() + "/" + ''.join(random.choices(string.ascii_uppercase, k=8))
