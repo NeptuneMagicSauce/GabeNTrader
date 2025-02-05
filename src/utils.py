@@ -12,10 +12,35 @@ from enum import Enum
 import tempfile
 import string
 import inspect
+import builtins
+import io
+
+def print(*args, **kwargs):
+    class PrintLock:
+        _ = threading.Lock()
+
+    # print arguments
+    buffer_args = io.StringIO()
+    builtins.print(*args, **kwargs, file=buffer_args)
+
+    # print thread info
+    buffer_line = io.StringIO()
+    lines = buffer_args.getvalue().splitlines()
+
+    # combine for each line
+    for line_index in range(0, len(lines)):
+        line = lines[line_index]
+        builtins.print('[', threading.current_thread().name, '] ', sep='', end='' , file=buffer_line)
+        # do not add a new line to the end of the lines, builtins.print() did it already
+        builtins.print(line, end='', file=buffer_line)
+
+    with PrintLock._:
+        builtins.print(buffer_line.getvalue(), sep='')
 
 class Utils:
     def initialize(app_name):
         assert(threading.current_thread() is threading.main_thread())
+        threading.main_thread().name = 'Main'
         random.seed(time.time())
         OScompat.initialize()
 
@@ -24,7 +49,6 @@ class Utils:
         if not os.path.isdir(data_path):
             os.mkdir(data_path)
         os.chdir(data_path)
-
 
 class OScompat:
     class ID(Enum):
@@ -89,11 +113,10 @@ def get_data_path(app_name):
     return path
 
 class ProgressBar:
-    def __init__(self, count, prefix='', size=60, out=sys.stdout):
+    def __init__(self, count, prefix='', size=60):
         self.count = count
         self.prefix = prefix + ' '
         self.size = size
-        self.out = out
         self.start = time.time()
         self.tick(0)
     def tick(self, index):
@@ -108,7 +131,7 @@ class ProgressBar:
             remaining = ((current - self.start) / j) * (self.count - j)
         mins, sec = divmod(remaining, 60)
         time_str = f"{int(mins):02}m:{int(sec):02}s"
-        print(f"{self.prefix}[{u'#'*x}{('.'*(self.size-x))}] {index}/{self.count} ETA {time_str}", end='\r', file=self.out, flush=True)
+        print(f"{self.prefix}[{u'#'*x}{('.'*(self.size-x))}] {index}/{self.count} ETA {time_str}", end='\r', flush=True)
         if j == self.count:
             print('')
 

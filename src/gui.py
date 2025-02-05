@@ -41,7 +41,6 @@ class GUI:
             self.webview_finished.set()
 
     def run():
-        print('GUI >>>', threading.current_thread())
         GUI.app = GUI.App()
         # instantiate widgets must be after ctor QApplication
         b = QLineEdit()
