@@ -29,7 +29,7 @@ from gui import *
 Utils.initialize("GabeNTrader")
 
 def initialize():
-    print('>>> initialize', threading.current_thread())
+    print('Start')
 
     Cookie.initialize()
 
@@ -47,9 +47,11 @@ def initialize():
 
     get_items()
 
-    print('<<< initialize', threading.current_thread())
+    print('End')
 
+threading.Thread(target=initialize, name='Init').start()
 
-threading.Thread(target=initialize, name='Initialize').start()
+return_code = GUI.run()
 
-exit(GUI.run())
+print('End')
+exit(return_code)
