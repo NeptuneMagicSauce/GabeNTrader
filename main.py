@@ -50,8 +50,6 @@ def initialize():
     print('<<< initialize', threading.current_thread())
 
 
-threading.Thread(target=initialize).start()
+threading.Thread(target=initialize, name='Initialize').start()
 
-GUI.initialize()
-
-exit(GUI.return_code)
+exit(GUI.run())
