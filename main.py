@@ -25,9 +25,6 @@ from gui import *
 ### MAIN ###
 ############
 
-
-Utils.initialize("GabeNTrader")
-
 def initialize():
     print('Start')
 
@@ -48,9 +45,17 @@ def initialize():
 
     print('End')
 
-threading.Thread(target=initialize, name='Init').start()
+# subprocesses: will execute what's before main
+# and will not execute main
+Utils.initialize("GabeNTrader")
 
-return_code = GUI.run()
+if __name__ == '__main__':
 
-print('End')
-exit(return_code)
+    Instances.is_main_process = True
+
+    threading.Thread(target=initialize, name='Init').start()
+
+    return_code = GUI.run()
+
+    print('End')
+    exit(return_code)

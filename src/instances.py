@@ -6,3 +6,4 @@ class Instances:
     items = []
     names = []
     fetcher = None
+    is_main_process = False

@@ -15,6 +15,8 @@ import inspect
 import builtins
 import io
 
+from instances import *
+
 class PrintLock:
     _ = threading.Lock()
 
@@ -24,13 +26,14 @@ def print(*args, **kwargs):
     builtins.print(*args, **kwargs, file=buffer_args)
 
     # send to GUI
-    # GUI.app.output.emit(threading.current_thread().name, buffer_args.getvalue())
+    # GUI.app.output.emit(os.getpid(), threading.current_thread().name, buffer_args.getvalue())
 
     # include thread info per line
     thread = threading.current_thread().name
+    process = str(os.getpid()) + '/' if not Instances.is_main_process else ''
     for line in buffer_args.getvalue().splitlines():
         with PrintLock._:
-            builtins.print('[', thread, '] ', line, sep='')
+            builtins.print('[', process, thread, '] ', line, sep='')
 
 class Utils:
     def initialize(app_name):
@@ -58,7 +61,7 @@ class OScompat:
         else:
             OScompat.id = OScompat.ID.Windows
         OScompat.id_str = str(OScompat.id).split('.')[1]
-        print('OS:', OScompat.id_str)
+        # print('OS:', OScompat.id_str)
 
 def get_windows_env_var(var_name):
     return subprocess.run(["cmd.exe", "/c", "echo", "%" + var_name + "%"], capture_output=True).stdout.strip().decode("utf-8")
