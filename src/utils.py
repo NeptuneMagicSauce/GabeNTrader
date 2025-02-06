@@ -35,7 +35,7 @@ def print(*args, **kwargs):
 class Utils:
     def initialize(app_name):
         assert(threading.current_thread() is threading.main_thread())
-        threading.main_thread().name = 'Main'
+        # threading.main_thread().name = NO this breaks checks for main thread in 3rd party libs
         random.seed(time.time())
         OScompat.initialize()
 
