@@ -5,6 +5,7 @@ import subprocess
 import tempfile
 import os
 import shutil
+import multiprocessing
 
 from instances import *
 from utils import *
@@ -24,14 +25,16 @@ class Cookie:
         try:
             Instances.cookie = pickle_load(Cookie.k_cookie_path)
         except:
-            # Instances.cookie = Cookie.get_cookie_firefox_installed_win32()
-            Instances.cookie = Cookie.get_cookie_webview().get()
+            # Instances.cookie = Cookie.get_from_installed_browser()
+            # Instances.cookie = Cookie.webview.get_on_main_thread()
+            Instances.cookie = Cookie.webview.get_on_subprocess()
+
             if len(Instances.cookie):
                 # if cookie is not empty
                 pickle_save(Instances.cookie, Cookie.k_cookie_path, compress=False)
         print('Cookie:', Instances.cookie['steamLoginSecure'][:50] + ' ...' if Instances.cookie is not None and len(Instances.cookie) else {})
 
-    def get_cookie_firefox_installed_win32():
+    def get_from_installed_browser():
         # supports Firefox on Windows WSL
 
         try:
@@ -61,12 +64,12 @@ class Cookie:
                 print("not a file:", path)
                 return {}
 
-            return Cookie.get_cookie_from_file(path)
+            return Cookie.get_from_browser_sqlite(path)
         except Exception as e:
             print(e)
             return {}
 
-    def get_cookie_from_file(path):
+    def get_from_browser_sqlite(path):
 
         try:
             db = sqlite_copy_db(path)
@@ -100,89 +103,115 @@ class Cookie:
             Steam.initialize() # re-validate the new cookie
             print_is_valid()
 
-    class get_cookie_webview:
-        # needs to be a class to share data between threads
+    class webview:
+        cookie_value = ''
 
-        def sleep(self):
-            time.sleep(0.05)
+        class Parallelism(Enum):
+            Thread = 0
+            Process = 1
 
-        def get(self):
+        def get_on_subprocess():
+            parent, child = multiprocessing.Pipe()
+            p = multiprocessing.Process(target=Cookie.webview.retrieve, args=(Cookie.webview.Parallelism.Process, child,))
+            p.start()
+            ret = parent.recv()
+            # p.join() # not needed
+            return ret
+
+        def get_on_main_thread():
+            return Cookie.webview.retrieve(Cookie.webview.Parallelism.Thread)
+
+        def retrieve(parallelism, pipe=None):
+
             k_expect_slow_start = True if OScompat.id == OScompat.ID.WSL else False
             k_support_hidden_start = False if OScompat.id == OScompat.ID.WSL else True
+            k_webview_storage = os.getcwd() + '/webview/' + OScompat.id_str
 
             if k_expect_slow_start:
                 print('Getting the login information ...', flush=True)
 
-            self.cookie_value = ''
-            self.k_url = 'https://steamcommunity.com/login/home'
-            self.window = webview.create_window('', self.k_url, hidden=k_support_hidden_start, height=800)
-            self.is_running = True # needed on WSL for thread termination
+            k_url = 'https://steamcommunity.com/login/home'
+            window = webview.create_window('', k_url, hidden=k_support_hidden_start, height=800)
+            is_running = True # needed on WSL for thread termination
 
             def find_cookie():
-                # ! not the main thread, it's the webview thread
+                def sleep():
+                    time.sleep(0.05)
+
+                # ! not the main thread, it's the webview sub-thread
                 threading.current_thread().name = 'FindCookie'
                 # print('>>>')
-                while self.is_running:
-                    if self.window is None:
+                while is_running:
+                    if window is None:
                         # this webview was closed
                         # or we're called too early
-                        self.sleep()
+                        sleep()
                         continue
 
                     try:
-                        url = self.window.get_current_url()
+                        url = window.get_current_url()
                     except Exception as e:
                         print('get_url failed:', e)
-                        self.sleep()
+                        sleep()
                         continue
 
                     if url is None:
                         continue
 
                     # restrict to the unique url
-                    if not url == self.k_url:
-                        self.window.load_url(self.k_url)
+                    if not url == k_url:
+                        window.load_url(k_url)
 
                     try:
-                        cookies = self.window.get_cookies()
+                        cookies = window.get_cookies()
                     except Exception as e:
                         print('get_cookies failed:', e)
-                        self.sleep()
+                        sleep()
                         continue
 
                     # cookie.items() is dict_items
                     # item is tuple, 0 is str key, 1 is morsel
 
                     if cookies is None:
-                        self.sleep()
+                        sleep()
                         continue
 
                     if cookie := next(filter(lambda c:
                                              list(c.items())[0][0] == Cookie.k_cookie_key, cookies), None):
-                        self.cookie_value = list(cookie.items())[0][1].value
+                        Cookie.webview.cookie_value = list(cookie.items())[0][1].value
                         # if window is hidden (on first launch)
                         # we must quit the webview before returning
                         # otherwise we're stuck
                         # and if window is not hidden we also want to destroy it
-                        self.window.destroy()
+                        window.destroy()
 
                     # here we did not find the cookie in storage
                     # so we show the window for logging-in
-                    self.window.show() # no effect on WSL, which is why it started not hidden
-                    self.sleep()
+                    window.show() # no effect on WSL, which is why it started not hidden
+                    sleep()
 
                 # print('<<<')
 
-            self.window.events.shown += find_cookie
+            window.events.shown += find_cookie
 
-            # pywebview mut be run on main thread = gui thread
-            GUI.wait_for_load()
-            GUI.app.start_webview.emit()
-            GUI.app.webview_finished.wait()
+            match parallelism:
+                case Cookie.webview.Parallelism.Thread:
+                    # signal qt main thread to start
+                    # because it must be run on main thread
+                    GUI.wait_for_load()
+                    GUI.app.start_webview.emit(k_webview_storage)
+                    GUI.app.webview_finished.wait()
+                case Cookie.webview.Parallelism.Process:
+                    # direct start, we are not blocking the gui process
+                    webview.start(private_mode=False, storage_path=k_webview_storage)
 
-            self.is_running = False
+            is_running = False # so that the thread find_cookie finishes if webview closed and not found
 
-            if not len(self.cookie_value):
-                return {}
+            ret = {}
+            if len(Cookie.webview.cookie_value):
+                ret[Cookie.k_cookie_key] = Cookie.webview.cookie_value
 
-            return { Cookie.k_cookie_key: self.cookie_value }
+            if pipe:
+                pipe.send(ret)
+
+            return ret

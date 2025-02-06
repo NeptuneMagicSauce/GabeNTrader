@@ -28,17 +28,19 @@ class GUI:
             time.sleep(0.01)
 
     class App(QApplication):
-        start_webview = pyqtSignal()
+        start_webview = pyqtSignal('QString')
         webview_finished = threading.Event()
 
         def __init__(self):
             super().__init__(sys.argv)
             self.start_webview.connect(self.start_webview_cb)
 
-        def start_webview_cb(self):
+        def start_webview_cb(self, storage_path):
             # print('>>> start_webview_cb')
-            k_webview_storage = os.getcwd() + '/webview/' + OScompat.id_str
-            webview.start(private_mode=False, storage_path=k_webview_storage)
+            # webview.start is slow and freezes the ui
+            # but it must be done on the main thread
+            # or on another process
+            webview.start(private_mode=False, storage_path=storage_path)
             self.webview_finished.set()
             # print('<<< start_webview_cb')
 
