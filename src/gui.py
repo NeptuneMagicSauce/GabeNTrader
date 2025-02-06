@@ -36,9 +36,11 @@ class GUI:
             self.start_webview.connect(self.start_webview_cb)
 
         def start_webview_cb(self):
+            # print('>>> start_webview_cb')
             k_webview_storage = os.getcwd() + '/webview/' + OScompat.id_str
             webview.start(private_mode=False, storage_path=k_webview_storage)
             self.webview_finished.set()
+            # print('<<< start_webview_cb')
 
     def run():
         GUI.app = GUI.App()

@@ -22,7 +22,6 @@ class Cookie:
         # gets the steamcommunity.com login cookie
 
         try:
-            # raise
             Instances.cookie = pickle_load(Cookie.k_cookie_path)
         except:
             # Instances.cookie = Cookie.get_cookie_firefox_installed_win32()
@@ -121,7 +120,8 @@ class Cookie:
 
             def find_cookie():
                 # ! not the main thread, it's the webview thread
-
+                threading.current_thread().name = 'FindCookie'
+                # print('>>>')
                 while self.is_running:
                     if self.window is None:
                         # this webview was closed
@@ -170,6 +170,8 @@ class Cookie:
                     # so we show the window for logging-in
                     self.window.show() # no effect on WSL, which is why it started not hidden
                     self.sleep()
+
+                # print('<<<')
 
             self.window.events.shown += find_cookie
 
