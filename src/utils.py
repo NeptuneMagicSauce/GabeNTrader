@@ -15,27 +15,22 @@ import inspect
 import builtins
 import io
 
-def print(*args, **kwargs):
-    class PrintLock:
-        _ = threading.Lock()
+class PrintLock:
+    _ = threading.Lock()
 
+def print(*args, **kwargs):
     # print arguments
     buffer_args = io.StringIO()
     builtins.print(*args, **kwargs, file=buffer_args)
 
-    # print thread info
-    buffer_line = io.StringIO()
-    lines = buffer_args.getvalue().splitlines()
+    # send to GUI
+    # GUI.app.output.emit(threading.current_thread().name, buffer_args.getvalue())
 
-    # combine for each line
-    for line_index in range(0, len(lines)):
-        line = lines[line_index]
-        builtins.print('[', threading.current_thread().name, '] ', sep='', end='' , file=buffer_line)
-        # do not add a new line to the end of the lines, builtins.print() did it already
-        builtins.print(line, end='', file=buffer_line)
-
-    with PrintLock._:
-        builtins.print(buffer_line.getvalue(), sep='')
+    # include thread info per line
+    thread = threading.current_thread().name
+    for line in buffer_args.getvalue().splitlines():
+        with PrintLock._:
+            builtins.print('[', thread, '] ', line, sep='')
 
 class Utils:
     def initialize(app_name):
