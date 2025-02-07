@@ -41,11 +41,11 @@ def get_items():
     k_item_per_req = 100
     # k_item_per_req = 2
 
+    # ProgressBar is not compatible with safe multithreaded print
     progress = ProgressBar(item_count - index)
     fetched = 0
 
     while index < item_count:
-
         items_json = Instances.fetcher.get_json("https://steamcommunity.com/market/search/render/?start=" + str(index) + "&search_descriptions=0&sort_column=default&sort_dir=desc&appid=" + k_game_id + "&norender=1&count=" + str(k_item_per_req))
 
         if items_json is None:
@@ -70,6 +70,7 @@ def get_items():
         fetched += count
         index += count
         progress.tick(fetched)
+        # TODO gui.progress(fetched)
 
     pickle_save(items, cache_path)
 

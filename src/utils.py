@@ -16,6 +16,8 @@ import builtins
 import io
 
 from instances import *
+# from gui import *
+# import gui
 
 class PrintLock:
     _ = threading.Lock()
@@ -25,12 +27,16 @@ def print(*args, **kwargs):
     buffer_args = io.StringIO()
     builtins.print(*args, **kwargs, file=buffer_args)
 
-    # send to GUI
-    # GUI.app.output.emit(os.getpid(), threading.current_thread().name, buffer_args.getvalue())
-
     # include thread info per line
     thread = threading.current_thread().name
-    process = str(os.getpid()) + '/' if not Instances.is_main_process else ''
+    pid, process = 0, ''
+    if not Instances.is_main_process:
+        pid = os.getpid()
+        process = str(os.getpid()) + '/'
+
+    # send to GUI
+    Instances.gui_out.event.emit(pid, thread, buffer_args.getvalue())
+
     for line in buffer_args.getvalue().splitlines():
         with PrintLock._:
             builtins.print('[', process, thread, '] ', line, sep='')
@@ -111,6 +117,8 @@ def get_data_path(app_name):
     return path
 
 class ProgressBar:
+    # needs a tty
+    # not compatible with multithreaded prints
     def __init__(self, count, prefix='', size=60):
         self.count = count
         self.prefix = prefix + ' '
@@ -151,7 +159,10 @@ def pickle_load(path):
         try:
             p = path + pickle_compress_suffix(compress)
             return pickle.load(gzip.open(p, 'rb') if compress else open(p, 'rb'))
-        except:
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(e)
             pass
     raise
 
@@ -174,7 +185,7 @@ def describe_function():
     caller = inspect.currentframe().f_back
     if caller is None:
         return
-    print('function:', caller.f_code.co_name, 'line:', caller.f_lineno)
+    builtins.print('function:', caller.f_code.co_name, 'line:', caller.f_lineno)
     args = inspect.getargvalues(caller).locals
     for i in args:
-        print(' [local]', i, '=', args[i])
+        builtins.print(' [local]', i, '=', args[i])
