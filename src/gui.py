@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
-        QVBoxLayout, QWidget)
+        QVBoxLayout, QWidget, QScrollArea)
 
 from instances import *
 from utils import *
@@ -27,12 +27,19 @@ class GUI:
         while GUI.app is None:
             time.sleep(0.01)
 
+    def run():
+        GUI.app = GUI.App()
+        # instantiate widgets must be after ctor QApplication
+        GUI.app.dialog = GUI.App.Dialog()
+        return GUI.app.exec()
+
     class App(QApplication):
         start_webview = pyqtSignal('QString')
         webview_finished = threading.Event()
 
         def __init__(self):
             super().__init__(sys.argv)
+            self.setApplicationName('Trader')
             self.start_webview.connect(self.start_webview_cb)
             Instances.gui_out.event.connect(self.print_console_cb)
 
@@ -47,11 +54,24 @@ class GUI:
 
         def print_console_cb(self, pid, thread, lines):
             # builtins.print('>>>', pid, thread, lines, end='')
-            pass
+            logs = self.dialog.logs
+            logs.setText(logs.text() + lines)
+            logs.adjustSize() # must be called for correctness
+            vscrollbar = self.dialog.logs_scroll.verticalScrollBar()
+            vscrollbar.setValue(vscrollbar.maximum())
 
-    def run():
-        GUI.app = GUI.App()
-        # instantiate widgets must be after ctor QApplication
-        b = QLineEdit()
-        b.show()
-        return GUI.app.exec()
+        class Dialog(QDialog):
+            def __init__(self):
+                super().__init__()
+                main_layout = QGridLayout()
+
+                self.logs = QLabel()
+                self.logs_scroll = QScrollArea()
+                self.logs_scroll.setWidget(self.logs)
+
+                main_layout.addWidget(QLineEdit(), 0, 0)
+                main_layout.addWidget(self.logs_scroll, 1, 0)
+                main_layout.addWidget(QPushButton(), 2, 0)
+
+                self.setLayout(main_layout)
+                self.show()

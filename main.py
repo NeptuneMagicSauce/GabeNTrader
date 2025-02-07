@@ -26,7 +26,7 @@ from gui import *
 ############
 
 def initialize():
-    print('Start')
+    # print('Start')
 
     Cookie.initialize()
 
@@ -46,7 +46,10 @@ def initialize():
 
     get_items()
 
-    print('End')
+    print('Load finished')
+    # for i in range(0, 8):
+    #     print(i)
+    #     time.sleep(1)
 
 # subprocesses: will execute what's before main
 # and will not execute main
