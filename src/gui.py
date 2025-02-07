@@ -65,21 +65,10 @@ class GUI:
             vscrollbar.setValue(vscrollbar.maximum())
 
         def tick_progress_cb(self, index, count, label):
-            progress = self.dialog.progress
-            if index == count:
-                progress.hide()
-                return
-            progress.show()
-            if len(label):
-                progress.label.setText(label)
-            bar = progress.bar
-            # TODO sanitize input
-            # TODO ETA
-            bar.setMaximum(count)
-            bar.setValue(index)
-
+            self.dialog.progress.tick(index, count, label)
 
         class ProgressBar(QWidget):
+
             def __init__(self):
                 super().__init__()
                 layout = QHBoxLayout()
@@ -92,6 +81,31 @@ class GUI:
                 self.ETA = QLabel()
                 layout.addWidget(self.ETA)
 
+            def tick(self, index, count, label):
+                if index >= count:
+                    self.hide()
+                    self.label.setText('')
+                    return
+                self.show()
+                index = clamp(index, 0, count)
+                count = max(count, 1)
+                if index == 0:
+                    self.start = time.time()
+                    self.ETA.setText('')
+                else:
+                    current = time.time()
+                    elapsed = current - self.start
+                    speed = index / elapsed
+                    remaining = count - index
+                    remaining_time = remaining / speed
+                    mins, sec = divmod(remaining_time, 60)
+                    time_str = f"{int(mins):02}m:{int(sec):02}s"
+                    self.ETA.setText('ETA: ' + time_str)
+
+                if len(label):
+                    self.label.setText(label)
+                self.bar.setMaximum(count)
+                self.bar.setValue(index)
 
         class Dialog(QDialog):
             def __init__(self):
