@@ -32,6 +32,8 @@ def initialize():
 
     Network.initialize()
 
+    # first request gets user_id
+    # and checks cookie is valid
     Steam.initialize()
 
     Cookie.refresh_cookie_if_invalid()
@@ -39,6 +41,7 @@ def initialize():
     if not Instances.cookie_is_valid:
         return
 
+    # second request gets user_name
     Steam.get_user_name()
 
     get_items()

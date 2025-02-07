@@ -46,7 +46,8 @@ class GUI:
             # print('<<< start_webview_cb')
 
         def print_console_cb(self, pid, thread, lines):
-            builtins.print('>>>', pid, thread, lines, end='')
+            # builtins.print('>>>', pid, thread, lines, end='')
+            pass
 
     def run():
         GUI.app = GUI.App()

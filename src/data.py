@@ -18,6 +18,7 @@ def get_items():
     cache_path = "items.pkl"
     try:
         items = pickle_load(cache_path)
+        # items = items[:len(items)-300] # debug: refresh last 3 chunks
         index = len(items)
         print("InCache:", index)
     except:

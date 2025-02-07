@@ -8,17 +8,14 @@ from instances import *
 
 class RateLimiter:
     def __init__(self, period):
-        self.period = period
+        self.k_period = period
         self.last_time = float(-1)
-    def tick(self):
-        current_time = time.time()
-        if self.last_time <= 0:
-            elapsed = float(0)
-            to_wait = float(0)
-        else:
-            elapsed = current_time - self.last_time
-            to_wait = max(0.0, self.period - elapsed)
-        time.sleep(to_wait)
+    def tick(self, throttle=True):
+        if throttle:
+            if self.last_time > 0:
+                elapsed = time.time() - self.last_time
+                to_wait = max(0.0, self.k_period - elapsed)
+                time.sleep(to_wait)
         self.last_time = time.time()
 
 class Fetcher(RateLimiter):
@@ -34,14 +31,14 @@ class Fetcher(RateLimiter):
                          # 2.5)
         self.cookie = cookie
 
-    def get_json(self, url):
-        return Fetcher.convert(self.get(url), Fetcher.Expect.JSON)
+    def get_json(self, url, throttle=True):
+        return Fetcher.convert(self.get(url, throttle), Fetcher.Expect.JSON)
 
-    def get_text(self, url):
-        return Fetcher.convert(self.get(url), Fetcher.Expect.Text)
+    def get_text(self, url, throttle=True):
+        return Fetcher.convert(self.get(url, throttle), Fetcher.Expect.Text)
 
-    def get(self, url):
-        self.tick()
+    def get(self, url, throttle=True):
+        self.tick(throttle)
         ret = requests.get(url, cookies=self.cookie)
         try:
             print(ret.status_code, file=open(".latest.code", "w"))
