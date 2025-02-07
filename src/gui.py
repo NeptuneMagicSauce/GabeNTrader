@@ -17,7 +17,7 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 
 from instances import *
 from utils import *
-
+# import src.utils
 
 class GUI:
     app = None
@@ -34,6 +34,7 @@ class GUI:
         def __init__(self):
             super().__init__(sys.argv)
             self.start_webview.connect(self.start_webview_cb)
+            Instances.gui_out.event.connect(self.print_console_cb)
 
         def start_webview_cb(self, storage_path):
             # print('>>> start_webview_cb')
@@ -43,6 +44,9 @@ class GUI:
             webview.start(private_mode=False, storage_path=storage_path)
             self.webview_finished.set()
             # print('<<< start_webview_cb')
+
+        def print_console_cb(self, pid, thread, lines):
+            builtins.print('>>>', pid, thread, lines, end='')
 
     def run():
         GUI.app = GUI.App()
