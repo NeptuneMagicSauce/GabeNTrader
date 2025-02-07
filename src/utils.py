@@ -191,4 +191,4 @@ def describe_function():
         builtins.print(' [local]', i, '=', args[i])
 
 def clamp(value, min, max):
-    return sorted(min, value, max)[1]
+    return sorted((min, value, max))[1]
