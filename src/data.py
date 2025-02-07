@@ -6,6 +6,7 @@ import pickle
 
 from instances import *
 from utils import *
+from gui import *
 
 # class Data:
 k_game_id = "730"
@@ -18,7 +19,7 @@ def get_items():
     cache_path = "items.pkl"
     try:
         items = pickle_load(cache_path)
-        # items = items[:len(items)-300] # debug: refresh last 3 chunks
+        items = items[:len(items)-300] # debug: refresh last 3 chunks
         index = len(items)
         print("InCache:", index)
     except:
@@ -43,8 +44,10 @@ def get_items():
     # k_item_per_req = 2
 
     # ProgressBar is not compatible with safe multithreaded print
-    progress = ProgressBar(item_count - index)
+    to_fetch = item_count - index
+    progress = ProgressBar(to_fetch)
     fetched = 0
+    GUI.app.tick_progress.emit(0, 1, 'Downloading Foo')
 
     while index < item_count:
         items_json = Instances.fetcher.get_json("https://steamcommunity.com/market/search/render/?start=" + str(index) + "&search_descriptions=0&sort_column=default&sort_dir=desc&appid=" + k_game_id + "&norender=1&count=" + str(k_item_per_req))
@@ -72,6 +75,9 @@ def get_items():
         index += count
         progress.tick(fetched)
         # TODO gui.progress(fetched)
+        GUI.app.tick_progress.emit(fetched, to_fetch, '')
+
+    GUI.app.tick_progress.emit(0, 0, '')
 
     pickle_save(items, cache_path)
 
