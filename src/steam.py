@@ -14,7 +14,7 @@ class Steam:
 
 
     def get_user_id_from_chattoken():
-        c = Instances.fetcher.get_json('https://steamcommunity.com/chat/clientjstoken')
+        c = Instances.fetcher.get_json('https://steamcommunity.com/chat/clientjstoken', throttle=False)
         # {
         #  "logged_in": false,
         #  "steamid": "",
@@ -55,7 +55,7 @@ class Steam:
         return None
 
     def get_user_name():
-        if c := Instances.fetcher.get_text('https://steamcommunity.com/my/' + str(Instances.user_id)):
+        if c := Instances.fetcher.get_text('https://steamcommunity.com/my/' + str(Instances.user_id), throttle=False):
             r = re.compile('<span class="actual_persona_name">(.*)</span>')
             for line in c.splitlines():
                 if m := re.search(r, line):
