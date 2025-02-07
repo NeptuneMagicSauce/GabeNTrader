@@ -36,12 +36,14 @@ class GUI:
     class App(QApplication):
         start_webview = pyqtSignal('QString')
         webview_finished = threading.Event()
+        tick_progress = pyqtSignal(int, int, 'QString')
 
         def __init__(self):
             super().__init__(sys.argv)
             self.setApplicationName('Trader')
             self.start_webview.connect(self.start_webview_cb)
             Instances.gui_out.event.connect(self.print_console_cb)
+            self.tick_progress.connect(self.tick_progress_cb)
 
         def start_webview_cb(self, storage_path):
             # print('>>> start_webview_cb')
@@ -54,24 +56,60 @@ class GUI:
 
         def print_console_cb(self, pid, thread, lines):
             # builtins.print('>>>', pid, thread, lines, end='')
+            if not lines.endswith('\n'):
+                lines += '\n'
             logs = self.dialog.logs
             logs.setText(logs.text() + lines)
             logs.adjustSize() # must be called for correctness
             vscrollbar = self.dialog.logs_scroll.verticalScrollBar()
             vscrollbar.setValue(vscrollbar.maximum())
 
+        def tick_progress_cb(self, index, count, label):
+            progress = self.dialog.progress
+            if index == count:
+                progress.hide()
+                return
+            progress.show()
+            if len(label):
+                progress.label.setText(label)
+            bar = progress.bar
+            # TODO sanitize input
+            # TODO ETA
+            bar.setMaximum(count)
+            bar.setValue(index)
+
+
+        class ProgressBar(QWidget):
+            def __init__(self):
+                super().__init__()
+                layout = QHBoxLayout()
+                self.setLayout(layout)
+                self.label = QLabel()
+                layout.addWidget(self.label)
+                self.bar = QProgressBar()
+                self.bar.setMinimum(0)
+                layout.addWidget(self.bar)
+                self.ETA = QLabel()
+                layout.addWidget(self.ETA)
+
+
         class Dialog(QDialog):
             def __init__(self):
                 super().__init__()
+                self.setMinimumWidth(500)
                 main_layout = QGridLayout()
 
                 self.logs = QLabel()
                 self.logs_scroll = QScrollArea()
                 self.logs_scroll.setWidget(self.logs)
 
+                self.progress = GUI.App.ProgressBar()
+                self.progress.hide()
+
                 main_layout.addWidget(QLineEdit(), 0, 0)
                 main_layout.addWidget(self.logs_scroll, 1, 0)
                 main_layout.addWidget(QPushButton(), 2, 0)
+                main_layout.addWidget(self.progress)
 
                 self.setLayout(main_layout)
                 self.show()

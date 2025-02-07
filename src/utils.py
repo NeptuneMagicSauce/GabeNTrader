@@ -189,3 +189,6 @@ def describe_function():
     args = inspect.getargvalues(caller).locals
     for i in args:
         builtins.print(' [local]', i, '=', args[i])
+
+def clamp(value, min, max):
+    return sorted(min, value, max)[1]
