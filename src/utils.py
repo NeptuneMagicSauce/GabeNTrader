@@ -39,7 +39,7 @@ def print(*args, **kwargs):
 
     for line in buffer_args.getvalue().splitlines():
         with PrintLock._:
-            builtins.print('[', process, thread, '] ', line, sep='')
+            builtins.print('[', process, thread, '] ', line, sep='', file=sys.stderr)
 
 class Utils:
     def initialize(app_name):
