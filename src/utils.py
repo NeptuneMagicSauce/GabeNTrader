@@ -148,11 +148,17 @@ def pickle_save(data, path, compress=True):
     suffix = pickle_compress_suffix(compress)
     path = path + suffix
     try:
-        backup = "." + path + ".backup"
+        backup = '.' + path + '.backup'
         shutil.copy(path, backup)
     except:
         pass
-    pickle.dump(data, gzip.open(path, "wb") if compress else open(path, 'wb'))
+    with gzip.open(path, 'wb') if compress else open(path, 'wb') as f:
+        # do not use return of open() directly as parameter of pickle.dump()
+        # otherwise it will fail to write end-of-stream marker
+        # because object file will not be destructed
+        # and then fail to be loaded back
+        # with: Compressed file ended before the end-of-stream marker was reached
+        pickle.dump(data, f)
 
 def pickle_load(path):
     for compress in [ True, False ]:
