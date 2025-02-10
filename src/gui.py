@@ -9,6 +9,7 @@ import webview
 
 from PyQt6.QtCore import QDateTime, Qt, QTimer
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtGui import QFont
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
@@ -114,6 +115,10 @@ class GUI:
                 main_layout = QGridLayout()
 
                 self.logs = QLabel()
+                font = QFont("Monospace")
+                font.setStyleHint(QFont.StyleHint.Monospace)#TypeWriter)
+                font.setWeight(QFont.Weight.DemiBold)
+                self.logs.setFont(font)
                 self.logs_scroll = QScrollArea()
                 self.logs_scroll.setWidget(self.logs)
 

@@ -45,7 +45,7 @@ def get_items():
 
     # ProgressBar is not compatible with safe multithreaded print
     to_fetch = item_count - index
-    # progress = ProgressBar(to_fetch)
+    # progress = ProgressBar(to_fetch, size=40)
     fetched = 0
     GUI.app.tick_progress.emit(0, 1, 'Downloading Foo')
 
@@ -74,7 +74,6 @@ def get_items():
         fetched += count
         index += count
         # progress.tick(fetched)
-        # TODO gui.progress(fetched)
         GUI.app.tick_progress.emit(fetched, to_fetch, '')
 
     GUI.app.tick_progress.emit(0, 0, '')
