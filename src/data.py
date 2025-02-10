@@ -19,7 +19,7 @@ def get_items():
     cache_path = "items.pkl"
     try:
         items = pickle_load(cache_path)
-        # items = items[:len(items)-300] # debug: refresh last 3 chunks
+        # items = items[:len(items)-50] # debug: refresh last N chunks
         index = len(items)
         print("InCache:", index)
     except:
@@ -47,7 +47,8 @@ def get_items():
     to_fetch = item_count - index
     # progress = ProgressBar(to_fetch, size=40)
     fetched = 0
-    GUI.app.tick_progress.emit(0, 1, 'Downloading Foo')
+    if to_fetch > 0:
+        GUI.app.tick_progress.emit(0, 1, 'Downloading Foo')
 
     while index < item_count:
         items_json = Instances.fetcher.get_json("https://steamcommunity.com/market/search/render/?start=" + str(index) + "&search_descriptions=0&sort_column=default&sort_dir=desc&appid=" + k_game_id + "&norender=1&count=" + str(k_item_per_req))
@@ -76,7 +77,8 @@ def get_items():
         # progress.tick(fetched)
         GUI.app.tick_progress.emit(fetched, to_fetch, '')
 
-    GUI.app.tick_progress.emit(0, 0, '')
+    if to_fetch > 0:
+        GUI.app.tick_progress.emit(0, 0, '')
 
     pickle_save(items, cache_path)
 
