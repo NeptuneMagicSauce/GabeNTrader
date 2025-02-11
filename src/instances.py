@@ -14,3 +14,4 @@ class Instances:
     fetcher = None
     is_main_process = False
     gui_out = GUIOut()
+    deferred_quit = False

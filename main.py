@@ -63,5 +63,7 @@ if __name__ == '__main__':
 
     return_code = GUI.run()
 
+    Instances.deferred_quit = True
+
     print('End')
     exit(return_code)
