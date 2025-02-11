@@ -9,7 +9,7 @@ import webview
 
 from PyQt6.QtCore import QDateTime, Qt, QTimer, QMargins, QSize
 from PyQt6.QtCore import QObject, pyqtSignal
-from PyQt6.QtGui import QFont, QAction
+from PyQt6.QtGui import QFont, QAction, QShortcut, QKeySequence
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
@@ -19,7 +19,6 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 
 from instances import *
 from utils import *
-# import src.utils
 
 class GUI:
     app = None
@@ -44,11 +43,15 @@ class GUI:
             GUI.app = GUI.App()
             # instantiate widgets must be after ctor QApplication
 
-            GUI.app.dialog = GUI.App.Central()
+            GUI.app.central = GUI.App.Central()
             w = QMainWindow()
-            w.setWindowIcon(GUI.app.style().standardIcon(getattr(QStyle.StandardPixmap, 'SP_MessageBoxWarning')))
-            w.setCentralWidget(GUI.app.dialog)
+            w.setWindowIcon(GUI.App.standard_icon('SP_MessageBoxWarning'))
+            w.setCentralWidget(GUI.app.central)
             w.addToolBar(GUI.App.ToolBar())
+
+            quit_shortcut = QShortcut(QKeySequence(Qt.Key.Key_F12), GUI.app)
+            quit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut);
+            quit_shortcut.activated.connect(GUI.app.quit)
 
             w.show()
             return GUI.app.exec()
@@ -60,6 +63,9 @@ class GUI:
             self.start_webview.connect(self.start_webview_cb)
             Instances.gui_out.event.connect(self.print_console_cb)
             self.tick_progress.connect(self.tick_progress_cb)
+
+        def standard_icon(name):
+            return GUI.app.style().standardIcon(getattr(QStyle.StandardPixmap, name))
 
         def start_webview_cb(self, storage_path):
             if Instances.deferred_quit:
@@ -78,16 +84,16 @@ class GUI:
             # builtins.print('>>>', pid, thread, lines, end='')
             if not lines.endswith('\n'):
                 lines += '\n'
-            logs = self.dialog.logs
+            logs = self.central.logs
             logs.setText(logs.text() + lines)
             logs.adjustSize() # must be called for correctness
-            vscrollbar = self.dialog.logs_scroll.verticalScrollBar()
+            vscrollbar = self.central.logs_scroll.verticalScrollBar()
             vscrollbar.setValue(vscrollbar.maximum())
 
         def tick_progress_cb(self, index, count, label):
             if Instances.deferred_quit:
                 return
-            self.dialog.progress.tick(index, count, label)
+            self.central.progress.tick(index, count, label)
 
         class ProgressBar(QWidget):
 
@@ -140,11 +146,10 @@ class GUI:
                 logs_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
                 self.addWidget(logs_spacer)
                 self.logs_action = QAction() # must be a member otherwise it does not appear (destroyed?)
-                logs_icon = GUI.app.style().standardIcon(getattr(QStyle.StandardPixmap, 'SP_MessageBoxInformation'))
-                self.logs_action.setIcon(logs_icon)
+                self.logs_action.setIcon(GUI.App.standard_icon('SP_MessageBoxInformation'))
                 self.logs_action.setText('Logs')
                 self.logs_action.setCheckable(True)
-                self.logs_action.toggled.connect(lambda t: GUI.app.dialog.logs_scroll.setVisible(t))
+                self.logs_action.toggled.connect(lambda t: GUI.app.central.logs_scroll.setVisible(t))
                 self.addAction(self.logs_action)
 
         class Central(QWidget):
