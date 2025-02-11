@@ -9,12 +9,13 @@ import webview
 
 from PyQt6.QtCore import QDateTime, Qt, QTimer, QMargins, QSize
 from PyQt6.QtCore import QObject, pyqtSignal
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QAction
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
-        QVBoxLayout, QWidget, QScrollArea, QToolBar, QSizePolicy, QStyle, QToolButton )
+        QVBoxLayout, QWidget, QScrollArea, QToolBar, QSizePolicy, QStyle, QToolButton,
+                             QMainWindow)
 
 from instances import *
 from utils import *
@@ -29,16 +30,30 @@ class GUI:
             time.sleep(0.01)
 
     def run():
-        GUI.app = GUI.App()
-        # instantiate widgets must be after ctor QApplication
-        GUI.app.dialog = GUI.App.Dialog()
-        return GUI.app.exec()
+        return GUI.App.run()
 
     class App(QApplication):
+
+        # signals
         start_webview = pyqtSignal('QString')
         webview_finished = threading.Event()
         tick_progress = pyqtSignal(int, int, 'QString')
 
+        # init
+        def run():
+            GUI.app = GUI.App()
+            # instantiate widgets must be after ctor QApplication
+
+            GUI.app.dialog = GUI.App.Central()
+            w = QMainWindow()
+            w.setWindowIcon(GUI.app.style().standardIcon(getattr(QStyle.StandardPixmap, 'SP_MessageBoxWarning')))
+            w.setCentralWidget(GUI.app.dialog)
+            w.addToolBar(GUI.App.ToolBar())
+
+            w.show()
+            return GUI.app.exec()
+
+        # ctor
         def __init__(self):
             super().__init__(sys.argv)
             self.setApplicationName('Trader')
@@ -47,6 +62,8 @@ class GUI:
             self.tick_progress.connect(self.tick_progress_cb)
 
         def start_webview_cb(self, storage_path):
+            if Instances.deferred_quit:
+                return
             # print('>>> start_webview_cb')
             # webview.start is slow and freezes the ui
             # but it must be done on the main thread
@@ -56,6 +73,8 @@ class GUI:
             # print('<<< start_webview_cb')
 
         def print_console_cb(self, pid, thread, lines):
+            if Instances.deferred_quit:
+                return
             # builtins.print('>>>', pid, thread, lines, end='')
             if not lines.endswith('\n'):
                 lines += '\n'
@@ -66,6 +85,8 @@ class GUI:
             vscrollbar.setValue(vscrollbar.maximum())
 
         def tick_progress_cb(self, index, count, label):
+            if Instances.deferred_quit:
+                return
             self.dialog.progress.tick(index, count, label)
 
         class ProgressBar(QWidget):
@@ -108,34 +129,31 @@ class GUI:
                 self.bar.setMaximum(count)
                 self.bar.setValue(index)
 
-        class Dialog(QDialog):
+        class ToolBar(QToolBar):
+            def __init__(self):
+                super().__init__()
+                self.setMovable(False)
+                self.setFloatable(False)
+                self.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
+                self.setFixedHeight(30)
+                logs_spacer = QWidget()
+                logs_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                self.addWidget(logs_spacer)
+                self.logs_action = QAction() # must be a member otherwise it does not appear (destroyed?)
+                logs_icon = GUI.app.style().standardIcon(getattr(QStyle.StandardPixmap, 'SP_MessageBoxInformation'))
+                self.logs_action.setIcon(logs_icon)
+                self.logs_action.setText('Logs')
+                self.logs_action.setCheckable(True)
+                self.logs_action.toggled.connect(lambda t: GUI.app.dialog.logs_scroll.setVisible(t))
+                self.addAction(self.logs_action)
+
+        class Central(QWidget):
             def __init__(self):
                 super().__init__()
                 self.setMinimumWidth(500)
                 self.resize(500, 200)
 
-                self.tool_bar = QToolBar()
-                # self.tool_bar.setFixedHeight(20)
-                self.tool_bar.setFloatable(False)
-                self.tool_bar.setMovable(False)
-
-                logs_button = QPushButton()#QToolButton() #'Logs')
-                logs_button.setToolTip('Logs')
-                icon = self.style().standardIcon(getattr(QStyle.StandardPixmap, 'SP_MessageBoxInformation'))
-                logs_button.setIcon(icon)
-                logs_button.setCheckable(True)
-                logs_button.toggled.connect(lambda t: self.logs_scroll.setVisible(t))
-                logs_spacer = QWidget()
-                logs_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-                self.tool_bar.addWidget(logs_spacer)
-                self.tool_bar.addWidget(logs_button)
-
-                root_layout = QVBoxLayout()
-                self.r = root_layout
-                root_layout.addWidget(self.tool_bar)
-
                 main_layout = QVBoxLayout() # QGridLayout()
-                root_layout.addLayout(main_layout)
 
                 self.logs = QLabel()
                 font = QFont("Monospace")
@@ -149,14 +167,14 @@ class GUI:
 
                 self.progress = GUI.App.ProgressBar()
 
-                main_layout.addWidget(QLineEdit())#, 0, 0)
-                main_layout.addWidget(QWidget())#)#, 1, 0) # spacer needed for tool_bar stays at fixed height
-                main_layout.addWidget(QPushButton())#, 2, 0)
-                main_layout.addWidget(self.logs_scroll)#, 3, 0)
-                main_layout.addWidget(self.progress)#, 4, 0)
+                main_layout.addWidget(QLineEdit())
+                main_layout.addWidget(QWidget()) # spacer exanding for QLineEdit to stay at the top
+                main_layout.addWidget(QPushButton('Button'))
+                main_layout.addWidget(self.logs_scroll)
+                main_layout.addWidget(self.progress)
 
                 self.progress.hide()
                 self.logs_scroll.hide() # must be hidden to match logs_button state: not down
 
-                self.setLayout(root_layout)
+                self.setLayout(main_layout)
                 self.show()
