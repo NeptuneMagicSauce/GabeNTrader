@@ -156,7 +156,7 @@ class GUI:
                 main_layout.addWidget(self.progress)#, 4, 0)
 
                 self.progress.hide()
-                self.logs_scroll.hide()
+                self.logs_scroll.hide() # must be hidden to match logs_button state: not down
 
                 self.setLayout(root_layout)
                 self.show()
