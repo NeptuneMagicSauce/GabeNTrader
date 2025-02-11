@@ -22,6 +22,9 @@ class Cookie:
     def initialize():
         # gets the steamcommunity.com login cookie
 
+        # GUI.wait_for_ready() NO! we dont want to wait for background data load
+        # GUI.app.status_bar.login.set_text.emit('foo')
+
         try:
             Instances.cookie = pickle_load(Cookie.k_cookie_path)
         except:
@@ -198,7 +201,7 @@ class Cookie:
                 case Cookie.webview.Parallelism.Thread:
                     # signal qt main thread to start
                     # because it must be run on main thread
-                    GUI.wait_for_load()
+                    GUI.wait_for_ready()
                     GUI.app.start_webview.emit(k_webview_storage)
                     GUI.app.webview_finished.wait()
                 case Cookie.webview.Parallelism.Process:
