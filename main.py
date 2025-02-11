@@ -14,6 +14,7 @@ from network import *
 from steam import *
 from data import *
 from gui import *
+from emoji import *
 
 # import pandas as pd
 # import numpy as np
@@ -35,6 +36,12 @@ def initialize():
     # first request gets user_id
     # and checks cookie is valid
     Steam.initialize()
+
+    GUI.wait_for_ready()
+    if Instances.deferred_quit:
+        return
+
+    GUI.app.status_bar.login.set_text.emit(Emoji.check if Instances.cookie_is_valid else Emoji.cross)
 
     Cookie.refresh_cookie_if_invalid()
 

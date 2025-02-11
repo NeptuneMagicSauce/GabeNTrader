@@ -191,10 +191,10 @@ def describe_function():
     caller = inspect.currentframe().f_back
     if caller is None:
         return
-    builtins.print('function:', caller.f_code.co_name, 'line:', caller.f_lineno)
+    builtins.print('function:', caller.f_code.co_name, 'line:', caller.f_lineno, file=sys.stderr)
     args = inspect.getargvalues(caller).locals
     for i in args:
-        builtins.print(' [local]', i, '=', args[i])
+        builtins.print(' [local]', i, '=', args[i], file=sys.stderr)
 
 def clamp(value, min, max):
     return sorted((min, value, max))[1]

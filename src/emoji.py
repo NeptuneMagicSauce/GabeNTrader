@@ -1,0 +1,3 @@
+class Emoji:
+    check = '✅'
+    cross = '❌'

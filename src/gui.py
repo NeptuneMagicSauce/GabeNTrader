@@ -15,17 +15,18 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QScrollArea, QToolBar, QSizePolicy, QStyle, QToolButton,
-                             QMainWindow)
+                             QMainWindow, QStatusBar)
 
 from instances import *
 from utils import *
 
 class GUI:
-    app = None
+    ready = False
 
-    def wait_for_load():
+    def wait_for_ready():
         assert(threading.current_thread() is not threading.main_thread())
-        while GUI.app is None:
+        # do not just check GUI.app is not None, there's more setup needed done later in App.run()
+        while not GUI.ready:
             time.sleep(0.01)
 
     def run():
@@ -53,7 +54,12 @@ class GUI:
             quit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut);
             quit_shortcut.activated.connect(GUI.app.quit)
 
+            GUI.app.status_bar = GUI.App.StatusBar()
+            w.setStatusBar(GUI.app.status_bar)
+            GUI.app.status_bar.login.working.emit()
+
             w.show()
+            GUI.ready = True
             return GUI.app.exec()
 
         # ctor
@@ -166,8 +172,6 @@ class GUI:
                 font.setWeight(QFont.Weight.DemiBold)
                 self.logs.setFont(font)
                 self.logs_scroll = QScrollArea()
-                # self.logs_scroll.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-                # self.logs_scroll.resize(1, 50)
                 self.logs_scroll.setWidget(self.logs)
 
                 self.progress = GUI.App.ProgressBar()
@@ -183,3 +187,46 @@ class GUI:
 
                 self.setLayout(main_layout)
                 self.show()
+
+        class StatusBar(QStatusBar):
+            class Item(QWidget):
+
+                set_text = pyqtSignal('QString')
+                working = pyqtSignal()
+
+                def __init__(self, name):
+                    super().__init__()
+                    layout = QHBoxLayout()
+                    self.setLayout(layout)
+                    layout.addWidget(QLabel(name + ':'))
+                    self.status = QLabel('status')
+                    layout.addWidget(self.status)
+                    self.set_text.connect(self.set_text_cb)
+                    self.working.connect(self.working_cb)
+                    self.update = QTimer()
+                    self.update.timeout.connect(self.update_cb)
+                    self.i = 0
+                    self.hide()
+
+                def set_text_cb(self, value):
+                    self.update.stop()
+                    self.status.setText(value)
+                    self.show()
+                def working_cb(self):
+                    self.update.start(300) # milliseconds
+                def update_cb(self):
+                    # TODO use widget for 'working', like QProgressBar.tick(0,1)
+                    s = ''
+                    self.i = (self.i + 1) % 3
+                    for i in range(0, 3):
+                        s += '|' if i == self.i else '='
+                    self.status.setText(s)
+                    self.show()
+
+            def __init__(self):
+                super().__init__()
+                self.setSizeGripEnabled(False)
+                self.login = GUI.App.StatusBar.Item('Login')
+                self.addPermanentWidget(self.login)
+                self.data = GUI.App.StatusBar.Item('Data')
+                self.addPermanentWidget(self.data)
