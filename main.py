@@ -14,7 +14,6 @@ from network import *
 from steam import *
 from data import *
 from gui import *
-from emoji import *
 
 # import pandas as pd
 # import numpy as np
@@ -37,12 +36,6 @@ def initialize():
     # and checks cookie is valid
     Steam.initialize()
 
-    GUI.wait_for_ready()
-    if Instances.deferred_quit:
-        return
-
-    GUI.app.status_bar.login.set_text.emit(Emoji.check if Instances.cookie_is_valid else Emoji.cross)
-
     Cookie.refresh_cookie_if_invalid()
 
     if not Instances.cookie_is_valid:
@@ -54,9 +47,6 @@ def initialize():
     get_items()
 
     print('Load finished')
-    # for i in range(0, 8):
-    #     print(i)
-    #     time.sleep(1)
 
 # subprocesses: will execute what's before main
 # and will not execute main
@@ -66,11 +56,13 @@ if __name__ == '__main__':
 
     Instances.is_main_process = True
 
+    # initialize threads and gui
     threading.Thread(target=initialize, name='Init').start()
+    GUI.App.initialize()
 
-    return_code = GUI.run()
+    # connect signals
+    Utils.printer.event.connect(GUI.app.print_console_cb)
+    Steam.signals.login_validated.connect(GUI.app.status_bar.login.set_success)
 
-    Instances.deferred_quit = True
-
-    print('End')
-    exit(return_code)
+    GUI.run()
+    exit(GUI.return_code)
