@@ -15,13 +15,16 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QProgressBar, QPushButton, QRadioButton, QScrollBar, QSizePolicy,
         QSlider, QSpinBox, QStyleFactory, QTableWidget, QTabWidget, QTextEdit,
         QVBoxLayout, QWidget, QScrollArea, QToolBar, QSizePolicy, QStyle, QToolButton,
-                             QMainWindow, QStatusBar)
+        QMainWindow, QStatusBar)
 
 from instances import *
 from utils import *
+from emoji import *
 
 class GUI:
     ready = False
+    quitted = False
+    return_code = -1
 
     def wait_for_ready():
         assert(threading.current_thread() is not threading.main_thread())
@@ -40,42 +43,44 @@ class GUI:
         tick_progress = pyqtSignal(int, int, 'QString')
 
         # init
-        def run():
+        def initialize():
             GUI.app = GUI.App()
             # instantiate widgets must be after ctor QApplication
+            # QMainWindow must be member of something otherwise it's destructed when leaving scope
 
             GUI.app.central = GUI.App.Central()
-            w = QMainWindow()
-            w.setWindowIcon(GUI.App.standard_icon('SP_MessageBoxWarning'))
-            w.setCentralWidget(GUI.app.central)
-            w.addToolBar(GUI.App.ToolBar())
+            GUI.app.main_window = QMainWindow()
+            GUI.app.main_window.setWindowIcon(GUI.App.standard_icon('SP_MessageBoxWarning'))
+            GUI.app.main_window.setCentralWidget(GUI.app.central)
+            GUI.app.main_window.addToolBar(GUI.App.ToolBar())
 
             quit_shortcut = QShortcut(QKeySequence(Qt.Key.Key_F12), GUI.app)
             quit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut);
             quit_shortcut.activated.connect(GUI.app.quit)
 
             GUI.app.status_bar = GUI.App.StatusBar()
-            w.setStatusBar(GUI.app.status_bar)
+            GUI.app.main_window.setStatusBar(GUI.app.status_bar)
             GUI.app.status_bar.login.working.emit()
 
-            w.show()
+            GUI.app.main_window.show()
             GUI.ready = True
-            return GUI.app.exec()
+
+        def run():
+            GUI.return_code = GUI.app.exec()
+            GUI.quitted = True
+            print('End')
 
         # ctor
         def __init__(self):
             super().__init__(sys.argv)
             self.setApplicationName('Trader')
             self.start_webview.connect(self.start_webview_cb)
-            Instances.gui_out.event.connect(self.print_console_cb)
             self.tick_progress.connect(self.tick_progress_cb)
 
         def standard_icon(name):
             return GUI.app.style().standardIcon(getattr(QStyle.StandardPixmap, name))
 
         def start_webview_cb(self, storage_path):
-            if Instances.deferred_quit:
-                return
             # print('>>> start_webview_cb')
             # webview.start is slow and freezes the ui
             # but it must be done on the main thread
@@ -85,8 +90,6 @@ class GUI:
             # print('<<< start_webview_cb')
 
         def print_console_cb(self, pid, thread, lines):
-            if Instances.deferred_quit:
-                return
             # builtins.print('>>>', pid, thread, lines, end='')
             if not lines.endswith('\n'):
                 lines += '\n'
@@ -97,8 +100,6 @@ class GUI:
             vscrollbar.setValue(vscrollbar.maximum())
 
         def tick_progress_cb(self, index, count, label):
-            if Instances.deferred_quit:
-                return
             self.central.progress.tick(index, count, label)
 
         class ProgressBar(QWidget):
@@ -207,6 +208,11 @@ class GUI:
                     self.update.timeout.connect(self.update_cb)
                     self.i = 0
                     self.hide()
+
+                def set_success(self, value):
+                    self.update.stop()
+                    self.status.setText(Emoji.check if value else Emoji.cross)
+                    self.show()
 
                 def set_text_cb(self, value):
                     self.update.stop()

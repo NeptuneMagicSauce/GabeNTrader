@@ -11,7 +11,11 @@ class Steam:
         Instances.user_id = Steam.get_user_id_from_chattoken()
         Instances.cookie_is_valid = Instances.user_id is not None
         print('UserId:', Instances.user_id)
+        Steam.signals.login_validated.emit(Instances.cookie_is_valid)
 
+    class Signals(QObject):
+        login_validated = pyqtSignal(bool)
+    signals = Signals()
 
     def get_user_id_from_chattoken():
         c = Instances.fetcher.get_json('https://steamcommunity.com/chat/clientjstoken', throttle=False)

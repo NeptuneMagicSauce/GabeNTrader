@@ -14,20 +14,16 @@ import string
 import inspect
 import builtins
 import io
+from PyQt6.QtCore import QObject, pyqtSignal
 
 from instances import *
-# from gui import *
-# import gui
-
-class PrintLock:
-    _ = threading.Lock()
 
 def print(*args, **kwargs):
-    # print arguments
+    # print arguments into buffer_args
     buffer_args = io.StringIO()
     builtins.print(*args, **kwargs, file=buffer_args)
 
-    # include thread info per line
+    # include thread info, same for all lines
     thread = threading.current_thread().name
     pid, process = 0, ''
     if not Instances.is_main_process:
@@ -35,13 +31,19 @@ def print(*args, **kwargs):
         process = str(os.getpid()) + '/'
 
     # send to GUI
-    Instances.gui_out.event.emit(pid, thread, buffer_args.getvalue())
+    Utils.printer.event.emit(pid, thread, buffer_args.getvalue())
 
     for line in buffer_args.getvalue().splitlines():
-        with PrintLock._:
+        with Printer.lock:
             builtins.print('[', process, thread, '] ', line, sep='', file=sys.stderr)
 
+class Printer(QObject):
+    lock = threading.Lock()
+    event = pyqtSignal(int, 'QString', 'QString')
+
 class Utils:
+    printer = Printer()
+
     def initialize(app_name):
         assert(threading.current_thread() is threading.main_thread())
         # threading.main_thread().name = NO this breaks checks for main thread in 3rd party libs
