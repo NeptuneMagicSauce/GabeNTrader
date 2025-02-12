@@ -14,7 +14,7 @@ import string
 import inspect
 import builtins
 import io
-from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import QObject, pyqtSignal, QTimer
 
 from instances import *
 

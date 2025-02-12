@@ -26,7 +26,6 @@ from gui import *
 ############
 
 def initialize():
-    # print('Start')
 
     Cookie.initialize()
 

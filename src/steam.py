@@ -11,6 +11,10 @@ class Steam:
         Instances.user_id = Steam.get_user_id_from_chattoken()
         Instances.cookie_is_valid = Instances.user_id is not None
         print('UserId:', Instances.user_id)
+
+        # debug: wait before sending status
+        # threading.Thread(target=lambda: [time.sleep(1),
+                                         # Steam.signals.login_validated.emit(Instances.cookie_is_valid)]).start()
         Steam.signals.login_validated.emit(Instances.cookie_is_valid)
 
     class Signals(QObject):

@@ -20,6 +20,7 @@ from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
 from instances import *
 from utils import *
 from emoji import *
+from widgets import *
 
 class GUI:
     ready = False
@@ -115,15 +116,15 @@ class GUI:
                 layout.addWidget(self.bar)
                 self.ETA = QLabel()
                 layout.addWidget(self.ETA)
+                self.start = 0
 
             def tick(self, index, count, label):
-                if index >= count:
+                if index >= count and count:
                     self.hide()
                     self.label.setText('')
                     return
                 self.show()
                 index = clamp(index, 0, count)
-                count = max(count, 1)
                 if index == 0:
                     self.start = time.time()
                     self.ETA.setText('')
@@ -206,7 +207,7 @@ class GUI:
                     self.working.connect(self.working_cb)
                     self.update = QTimer()
                     self.update.timeout.connect(self.update_cb)
-                    self.i = 0
+                    self.spinner = Widgets.SpinnerAscii()
                     self.hide()
 
                 def set_success(self, value):
@@ -219,15 +220,13 @@ class GUI:
                     self.status.setText(value)
                     self.show()
                 def working_cb(self):
-                    self.update.start(300) # milliseconds
+                    self.update.start(50) # milliseconds
+                    self.update_cb() # fire it once so that we do not wait the first tick
                 def update_cb(self):
-                    # TODO use widget for 'working', like QProgressBar.tick(0,1)
-                    s = ''
-                    self.i = (self.i + 1) % 3
-                    for i in range(0, 3):
-                        s += '|' if i == self.i else '='
-                    self.status.setText(s)
+                    self.status.setText(self.spinner.value())
                     self.show()
+
+
 
             def __init__(self):
                 super().__init__()
