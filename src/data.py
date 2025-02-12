@@ -44,8 +44,8 @@ def get_items():
     # k_item_per_req = 2
 
     # ProgressBar is not compatible with safe multithreaded print
-    to_fetch = item_count - index
     # progress = ProgressBar(to_fetch, size=40)
+    to_fetch = item_count - index
     fetched = 0
     if to_fetch > 0:
         GUI.app.tick_progress.emit(0, 1, 'Downloading Foo')
@@ -77,8 +77,8 @@ def get_items():
         # progress.tick(fetched)
         GUI.app.tick_progress.emit(fetched, to_fetch, '')
 
-    if to_fetch > 0:
-        GUI.app.tick_progress.emit(0, 0, '')
+    # send index == count == not_zero to dismiss the progress bar
+    GUI.app.tick_progress.emit(1, 1, '')
 
     pickle_save(items, cache_path)
 
