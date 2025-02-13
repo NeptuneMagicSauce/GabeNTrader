@@ -14,6 +14,7 @@ from network import *
 from steam import *
 from data import *
 from gui import *
+from remoteimages import *
 
 # import pandas as pd
 # import numpy as np
@@ -31,6 +32,8 @@ def initialize():
 
     Network.initialize()
 
+    Images.initialize()
+
     # first request gets user_id
     # and checks cookie is valid
     Steam.initialize()
@@ -40,7 +43,7 @@ def initialize():
     if not Instances.cookie_is_valid:
         return
 
-    # second request gets user_name
+    # second request gets user_name, third request gets user_icon
     Steam.get_user_name()
 
     get_items()
@@ -55,13 +58,16 @@ if __name__ == '__main__':
 
     Instances.is_main_process = True
 
-    # initialize threads and gui
-    threading.Thread(target=initialize, name='Init').start()
+    # initialize gui: it must be ready to not miss signals before other threads are spawned
     GUI.App.initialize()
+
+    # initialize initial load thread
+    threading.Thread(target=initialize, name='Init').start()
 
     # connect signals
     Utils.printer.event.connect(GUI.app.print_console_cb)
     Steam.signals.login_validated.connect(GUI.app.status_bar.login.set_success)
+    Steam.signals.user_id_found.connect(GUI.app.tool_bar.user_action.found)
 
     GUI.run()
     exit(GUI.return_code)

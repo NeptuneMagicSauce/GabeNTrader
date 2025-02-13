@@ -8,6 +8,7 @@ import threading
 import webview
 
 from PyQt6.QtCore import QDateTime, Qt, QTimer, QMargins, QSize
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QObject, pyqtSignal
 from PyQt6.QtGui import QFont, QAction, QShortcut, QKeySequence
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
@@ -53,7 +54,8 @@ class GUI:
             GUI.app.main_window = QMainWindow()
             GUI.app.main_window.setWindowIcon(GUI.App.standard_icon('SP_MessageBoxWarning'))
             GUI.app.main_window.setCentralWidget(GUI.app.central)
-            GUI.app.main_window.addToolBar(GUI.App.ToolBar())
+            GUI.app.tool_bar = GUI.App.ToolBar()
+            GUI.app.main_window.addToolBar(GUI.app.tool_bar)
 
             quit_shortcut = QShortcut(QKeySequence(Qt.Key.Key_F12), GUI.app)
             quit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut);
@@ -61,7 +63,7 @@ class GUI:
 
             GUI.app.status_bar = GUI.App.StatusBar()
             GUI.app.main_window.setStatusBar(GUI.app.status_bar)
-            GUI.app.status_bar.login.working.emit()
+            GUI.app.status_bar.login.working.emit() # why not start in status working like Widgets.User ?
 
             GUI.app.main_window.show()
             GUI.ready = True
@@ -160,6 +162,9 @@ class GUI:
                 self.logs_action.toggled.connect(lambda t: GUI.app.central.logs_scroll.setVisible(t))
                 self.addAction(self.logs_action)
 
+                self.user_action = Widgets.User()
+                self.addWidget(self.user_action)
+
         class Central(QWidget):
             def __init__(self):
                 super().__init__()
@@ -220,7 +225,7 @@ class GUI:
                     self.status.setText(value)
                     self.show()
                 def working_cb(self):
-                    self.update.start(50) # milliseconds
+                    self.update.start(Widgets.SpinnerAscii.period)
                     self.update_cb() # fire it once so that we do not wait the first tick
                 def update_cb(self):
                     self.status.setText(self.spinner.value())
