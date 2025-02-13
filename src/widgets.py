@@ -1,7 +1,15 @@
 import unicodedata
+from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLabel
+
+from utils import *
+from instances import *
+from emoji import *
 
 class Widgets:
     class SpinnerAscii:
+        period = 50 # milliseconds
         # from braille unicode
         # https://www.unicode.org/charts/nameslist/n_2800.html#2800
         # https://www.fileformat.info/info/unicode/block/braille_patterns/images.htm
@@ -43,3 +51,46 @@ class Widgets:
             if  self.index == Widgets.SpinnerAscii.length:
                 self.index = 0
             return ret
+
+    class User(QWidget):
+        def __init__(self):
+            super().__init__()
+            self.update = QTimer()
+            self.update.timeout.connect(self.update_cb)
+            self.spinner = Widgets.SpinnerAscii()
+            layout = QHBoxLayout()
+            self.setLayout(layout)
+            self.image = QLabel()
+            self.name = QLabel()
+            layout.addWidget(self.image)
+            layout.addWidget(self.name)
+            self.update.start(Widgets.SpinnerAscii.period)
+
+            margins = layout.contentsMargins()
+            margins.setTop(0)
+            margins.setBottom(0)
+            layout.setContentsMargins(margins)
+
+        def update_cb(self):
+            self.name.setText(self.spinner.value())
+
+        def found(self):
+            if n := Instances.user_name:
+                self.name.setText(n)
+            else:
+                self.name.setText('?')
+
+            try:
+                if i := Instances.user_icon:
+                    pix = QPixmap()
+                    if pix.loadFromData(i):
+                        self.image.setPixmap(pix.scaled(
+                            self.image.height(), self.image.height(),
+                            Qt.AspectRatioMode.KeepAspectRatio))
+                    else:
+                        raise
+                else:
+                    raise
+            except:
+                self.image.setText(Emoji.question_mark)
+            self.update.stop()

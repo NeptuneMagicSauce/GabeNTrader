@@ -37,6 +37,9 @@ class Fetcher(RateLimiter):
     def get_text(self, url, throttle=True):
         return Fetcher.convert(self.get(url, throttle), Fetcher.Expect.Text)
 
+    def get_binary(self, url, throttle=True):
+        return Fetcher.convert(self.get(url, throttle), Fetcher.Expect.Binary)
+
     def get(self, url, throttle=True):
         self.tick(throttle)
         ret = requests.get(url, cookies=self.cookie)
