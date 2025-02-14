@@ -15,6 +15,11 @@ from gui import *
 
 class Cookie:
 
+    class Signals(QObject):
+        show_login = pyqtSignal()
+
+    signals = Signals()
+
     k_web_domain = "steamcommunity.com"
     k_cookie_key = "steamLoginSecure"
     k_cookie_path = "cookie.pkl"
@@ -26,11 +31,15 @@ class Cookie:
         # GUI.app.status_bar.login.set_text.emit('foo')
 
         try:
+            print('Debug Remove this')
+            raise
             Instances.cookie = pickle_load(Cookie.k_cookie_path)
         except:
             # Instances.cookie = Cookie.get_from_installed_browser()
             # Instances.cookie = Cookie.webview.get_on_main_thread()
             Instances.cookie = Cookie.webview.get_on_subprocess()
+
+            Cookie.signals.show_login.emit()
 
             if len(Instances.cookie):
                 # if cookie is not empty

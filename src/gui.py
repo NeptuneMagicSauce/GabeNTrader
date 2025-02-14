@@ -8,7 +8,6 @@ import threading
 import webview
 
 from PyQt6.QtCore import QDateTime, Qt, QTimer, QMargins, QSize
-from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtCore import QObject, pyqtSignal
 from PyQt6.QtGui import QFont, QAction, QShortcut, QKeySequence
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
@@ -46,6 +45,7 @@ class GUI:
 
         # init
         def initialize():
+
             GUI.app = GUI.App()
             # instantiate widgets must be after ctor QApplication
             # QMainWindow must be member of something otherwise it's destructed when leaving scope
@@ -65,13 +65,64 @@ class GUI:
             GUI.app.main_window.setStatusBar(GUI.app.status_bar)
             GUI.app.status_bar.login.working.emit() # why not start in status working like Widgets.User ?
 
+            # end widgets, they must be created before this line, because we're registering before_quit cb
+
+            def before_quit():
+                # this is needed for the WebEngineProfile order destruction warning:
+                # Release of profile requested but WebEnginePage still not deleted. Expect troubles
+                GUI.app.central.login.page().deleteLater()
+            GUI.app.lastWindowClosed.connect(before_quit)
+
             GUI.app.main_window.show()
             GUI.ready = True
 
         def run():
             GUI.return_code = GUI.app.exec()
             GUI.quitted = True
+
             print('End')
+
+        class Central(QWidget):
+            def __init__(self):
+                super().__init__()
+                self.setMinimumWidth(500)
+
+                main_layout = QVBoxLayout() # QGridLayout()
+                self.setLayout(main_layout)
+
+                # logs
+                self.logs = QLabel()
+                font = QFont("Monospace")
+                font.setStyleHint(QFont.StyleHint.Monospace)#TypeWriter)
+                font.setWeight(QFont.Weight.DemiBold)
+                self.logs.setFont(font)
+                self.logs_scroll = QScrollArea()
+                self.logs_scroll.setWidget(self.logs)
+                self.logs_scroll.hide() # must be hidden to match logs_button state: not down
+
+                # progress bar
+                self.progress = GUI.App.ProgressBar()
+                self.progress.hide()
+
+                # login
+                self.login = Widgets.Login()
+                self.login.hide()
+
+                # main widgets
+                self.main_widgets = [
+                    QLineEdit(),
+                    QWidget(), # spacer exanding for QLineEdit to stay at the top
+                    QPushButton('Button'),
+                    self.logs_scroll,
+                    self.progress,
+                    ]
+
+                # main
+                main_layout.addWidget(self.login)
+                for w in self.main_widgets:
+                    main_layout.addWidget(w)
+
+                self.show()
 
         # ctor
         def __init__(self):
@@ -152,48 +203,18 @@ class GUI:
                 self.setFloatable(False)
                 self.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
                 self.setFixedHeight(30)
-                logs_spacer = QWidget()
-                logs_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-                self.addWidget(logs_spacer)
                 self.logs_action = QAction() # must be a member otherwise it does not appear (destroyed?)
                 self.logs_action.setIcon(GUI.App.standard_icon('SP_MessageBoxInformation'))
                 self.logs_action.setText('Logs')
                 self.logs_action.setCheckable(True)
                 self.logs_action.toggled.connect(lambda t: GUI.app.central.logs_scroll.setVisible(t))
                 self.addAction(self.logs_action)
+                logs_spacer = QWidget()
+                logs_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+                self.addWidget(logs_spacer)
 
                 self.user_action = Widgets.User()
                 self.addWidget(self.user_action)
-
-        class Central(QWidget):
-            def __init__(self):
-                super().__init__()
-                self.setMinimumWidth(500)
-                self.resize(500, 200)
-
-                main_layout = QVBoxLayout() # QGridLayout()
-
-                self.logs = QLabel()
-                font = QFont("Monospace")
-                font.setStyleHint(QFont.StyleHint.Monospace)#TypeWriter)
-                font.setWeight(QFont.Weight.DemiBold)
-                self.logs.setFont(font)
-                self.logs_scroll = QScrollArea()
-                self.logs_scroll.setWidget(self.logs)
-
-                self.progress = GUI.App.ProgressBar()
-
-                main_layout.addWidget(QLineEdit())
-                main_layout.addWidget(QWidget()) # spacer exanding for QLineEdit to stay at the top
-                main_layout.addWidget(QPushButton('Button'))
-                main_layout.addWidget(self.logs_scroll)
-                main_layout.addWidget(self.progress)
-
-                self.progress.hide()
-                self.logs_scroll.hide() # must be hidden to match logs_button state: not down
-
-                self.setLayout(main_layout)
-                self.show()
 
         class StatusBar(QStatusBar):
             class Item(QWidget):
