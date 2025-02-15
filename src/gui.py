@@ -29,7 +29,7 @@ class GUI:
 
     def wait_for_ready():
         assert(threading.current_thread() is not threading.main_thread())
-        # do not just check GUI.app is not None, there's more setup needed done later in App.run()
+        # GUI.ready is set after App() and App.initialize()
         while not GUI.ready:
             time.sleep(0.01)
 
@@ -44,42 +44,40 @@ class GUI:
         tick_progress = pyqtSignal(int, int, 'QString')
 
         # init
-        def initialize():
+        def initialize(self):
 
-            # TODO: QApplication is a member and gets deleted: does this fix the hang?
-
-            GUI.app = GUI.App()
             # instantiate widgets must be after ctor QApplication
             # QMainWindow must be member of something otherwise it's destructed when leaving scope
 
-            GUI.app.central = GUI.App.Central()
-            GUI.app.main_window = QMainWindow()
-            GUI.app.main_window.setWindowIcon(GUI.App.standard_icon('SP_MessageBoxWarning'))
-            GUI.app.main_window.setCentralWidget(GUI.app.central)
-            GUI.app.tool_bar = GUI.App.ToolBar()
-            GUI.app.main_window.addToolBar(GUI.app.tool_bar)
+            self.central = GUI.App.Central()
+            self.main_window = QMainWindow()
+            self.main_window.setWindowIcon(self.standard_icon('SP_MessageBoxWarning'))
+            self.main_window.setCentralWidget(self.central)
 
-            GUI.app.quit_shortcut = QShortcut(QKeySequence(Qt.Key.Key_F12), GUI.app)
-            GUI.app.quit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut);
-            GUI.app.quit_shortcut.activated.connect(GUI.app.quit)
+            self.tool_bar = GUI.App.ToolBar(self)
+            self.main_window.addToolBar(self.tool_bar)
 
-            GUI.app.status_bar = GUI.App.StatusBar()
-            GUI.app.main_window.setStatusBar(GUI.app.status_bar)
-            GUI.app.status_bar.login.working.emit() # why not start in status working like Widgets.User ?
+            self.quit_shortcut = QShortcut(QKeySequence(Qt.Key.Key_F12), self)
+            self.quit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut);
+            self.quit_shortcut.activated.connect(self.quit)
+
+            self.status_bar = GUI.App.StatusBar()
+            self.main_window.setStatusBar(self.status_bar)
+            self.status_bar.login.working.emit() # why not start in status working like Widgets.User ?
 
             # end widgets, they must be created before this line, because we're registering before_quit cb
 
             def before_quit():
                 # this is needed for the WebEngineProfile order destruction warning:
                 # Release of profile requested but WebEnginePage still not deleted. Expect troubles
-                GUI.app.central.login.page().deleteLater()
-            GUI.app.lastWindowClosed.connect(before_quit)
+                self.central.login.page().deleteLater()
+            self.lastWindowClosed.connect(before_quit)
 
-            GUI.app.main_window.show()
+            self.main_window.show()
             GUI.ready = True
 
-        def run():
-            GUI.return_code = GUI.app.exec()
+        def run(self):
+            GUI.return_code = self.exec()
             GUI.quitted = True
 
             print('End')
@@ -133,8 +131,8 @@ class GUI:
             self.start_webview.connect(self.start_webview_cb)
             self.tick_progress.connect(self.tick_progress_cb)
 
-        def standard_icon(name):
-            return GUI.app.style().standardIcon(getattr(QStyle.StandardPixmap, name))
+        def standard_icon(self, name):
+            return self.style().standardIcon(getattr(QStyle.StandardPixmap, name))
 
         def start_webview_cb(self, storage_path):
             # print('>>> start_webview_cb')
@@ -199,17 +197,17 @@ class GUI:
                 self.bar.setValue(index)
 
         class ToolBar(QToolBar):
-            def __init__(self):
+            def __init__(self, app):
                 super().__init__()
                 self.setMovable(False)
                 self.setFloatable(False)
                 self.setContextMenuPolicy(Qt.ContextMenuPolicy.PreventContextMenu)
                 self.setFixedHeight(30)
                 self.logs_action = QAction() # must be a member otherwise it does not appear (destroyed?)
-                self.logs_action.setIcon(GUI.App.standard_icon('SP_MessageBoxInformation'))
+                self.logs_action.setIcon(app.standard_icon('SP_MessageBoxInformation'))
                 self.logs_action.setText('Logs')
                 self.logs_action.setCheckable(True)
-                self.logs_action.toggled.connect(lambda t: GUI.app.central.logs_scroll.setVisible(t))
+                self.logs_action.toggled.connect(lambda t: app.central.logs_scroll.setVisible(t))
                 self.addAction(self.logs_action)
                 logs_spacer = QWidget()
                 logs_spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
