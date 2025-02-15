@@ -6,9 +6,12 @@ import pickle
 
 from instances import *
 from utils import *
-from gui import *
 
-# class Data:
+class Data:
+    class Signals(QObject):
+        tick_progress = pyqtSignal(int, int, 'QString')
+    signals = Signals()
+
 k_game_id = "730"
 
 def get_items():
@@ -19,7 +22,7 @@ def get_items():
     cache_path = "items.pkl"
     try:
         items = pickle_load(cache_path)
-        # items = items[:len(items)-150] # debug: refresh last N chunks
+        # items = items[:len(items)-250] # debug: refresh last N chunks
         index = len(items)
         print("InCache:", index)
     except:
@@ -48,7 +51,7 @@ def get_items():
     to_fetch = item_count - index
     fetched = 0
     if to_fetch > 0:
-        GUI.app.tick_progress.emit(0, 1, 'Downloading Foo')
+        Data.signals.tick_progress.emit(0, 1, 'Downloading Foo')
 
     while index < item_count:
         items_json = Instances.fetcher.get_json("https://steamcommunity.com/market/search/render/?start=" + str(index) + "&search_descriptions=0&sort_column=default&sort_dir=desc&appid=" + k_game_id + "&norender=1&count=" + str(k_item_per_req))
@@ -75,10 +78,10 @@ def get_items():
         fetched += count
         index += count
         # progress.tick(fetched)
-        GUI.app.tick_progress.emit(fetched, to_fetch, '')
+        Data.signals.tick_progress.emit(fetched, to_fetch, '')
 
     # send index == count == not_zero to dismiss the progress bar
-    GUI.app.tick_progress.emit(1, 1, '')
+    Data.signals.tick_progress.emit(1, 1, '')
 
     pickle_save(items, cache_path)
 

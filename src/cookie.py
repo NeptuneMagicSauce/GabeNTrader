@@ -11,12 +11,12 @@ from instances import *
 from utils import *
 from network import *
 from steam import *
-from gui import *
 
 class Cookie:
 
     class Signals(QObject):
         show_login = pyqtSignal()
+        show_login_old = pyqtSignal('QString')
 
     signals = Signals()
 
@@ -26,9 +26,6 @@ class Cookie:
 
     def initialize():
         # gets the steamcommunity.com login cookie
-
-        # GUI.wait_for_ready() NO! we dont want to wait for background data load
-        # GUI.app.status_bar.login.set_text.emit('foo')
 
         try:
             print('Debug Remove this')
@@ -211,8 +208,9 @@ class Cookie:
                     # signal qt main thread to start
                     # because it must be run on main thread
                     GUI.wait_for_ready()
-                    GUI.app.start_webview.emit(k_webview_storage)
-                    GUI.app.webview_finished.wait()
+                    Cookie.signals.show_login_old.emit(k_webview_storage)
+                    assert(False) # not implemented: wait for gui finished signal without seeing gui
+                    # GUI.app.webview_finished.wait()
                 case Cookie.webview.Parallelism.Process:
                     # direct start, we are not blocking the gui process
                     webview.start(private_mode=False, storage_path=k_webview_storage)
