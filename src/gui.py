@@ -46,6 +46,8 @@ class GUI:
         # init
         def initialize():
 
+            # TODO: QApplication is a member and gets deleted: does this fix the hang?
+
             GUI.app = GUI.App()
             # instantiate widgets must be after ctor QApplication
             # QMainWindow must be member of something otherwise it's destructed when leaving scope
@@ -57,9 +59,9 @@ class GUI:
             GUI.app.tool_bar = GUI.App.ToolBar()
             GUI.app.main_window.addToolBar(GUI.app.tool_bar)
 
-            quit_shortcut = QShortcut(QKeySequence(Qt.Key.Key_F12), GUI.app)
-            quit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut);
-            quit_shortcut.activated.connect(GUI.app.quit)
+            GUI.app.quit_shortcut = QShortcut(QKeySequence(Qt.Key.Key_F12), GUI.app)
+            GUI.app.quit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut);
+            GUI.app.quit_shortcut.activated.connect(GUI.app.quit)
 
             GUI.app.status_bar = GUI.App.StatusBar()
             GUI.app.main_window.setStatusBar(GUI.app.status_bar)
@@ -85,7 +87,7 @@ class GUI:
         class Central(QWidget):
             def __init__(self):
                 super().__init__()
-                self.setMinimumWidth(500)
+                # self.setMinimumWidth(500)
 
                 main_layout = QVBoxLayout() # QGridLayout()
                 self.setLayout(main_layout)

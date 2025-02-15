@@ -135,6 +135,8 @@ class Widgets:
             # TODO
             # - find a better fix than minimum size, maybe refresh layout, repaint,
             #   central.resize() does not seem to work either
+            #   maybe size policy expanding
+            #   maybe zoom is too big because of dpi bug
             # - why is thread/process stuck on exit now? randomly
             #   because of deleteLater?
             # - have good size: i want to see the QR code
@@ -147,7 +149,7 @@ class Widgets:
         def cookie_added(self, cookie):
 
             print('Debug remove this')
-            self.found.emit()
+            QTimer.singleShot(1000, self.found.emit)
 
             for sub_cookie in QNetworkCookie.parseCookies(cookie.toRawForm()):
                 def qbytes_to_str(b):

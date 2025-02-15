@@ -67,6 +67,8 @@ if __name__ == '__main__':
     Steam.signals.login_validated.connect(GUI.app.status_bar.login.set_success)
     Steam.signals.user_id_found.connect(GUI.app.tool_bar.user_action.found)
     Cookie.signals.show_login.connect(GUI.app.central.login.show)
+    Cookie.signals.show_login_old.connect(GUI.app.start_webview_cb)
+    Data.signals.tick_progress.connect(GUI.app.tick_progress)
 
     # initialize initial load thread
     threading.Thread(target=initialize, name='Init').start()
