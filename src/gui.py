@@ -9,6 +9,7 @@ import webview
 
 from PyQt6.QtCore import QDateTime, Qt, QTimer, QMargins, QSize
 from PyQt6.QtCore import QObject, pyqtSignal
+from PyQt6.QtCore import qInstallMessageHandler
 from PyQt6.QtGui import QFont, QAction, QShortcut, QKeySequence
 from PyQt6.QtWidgets import (QApplication, QCheckBox, QComboBox, QDateTimeEdit,
         QDial, QDialog, QGridLayout, QGroupBox, QHBoxLayout, QLabel, QLineEdit,
@@ -46,6 +47,20 @@ class GUI:
         # init
         def initialize(self):
 
+            def qt_message_handler(message_type, context, message):
+                ignored = [
+                    'Release of profile requested but WebEnginePage still not deleted',
+                    # https://code.qt.io/cgit/qt/qtwebengine.git/tree/src/core/api/qwebenginepage.cpp?h=6.8#n582
+                    # says it should not crash if we no longer access the page
+                    'QGuiApplication::font(): no QGuiApplication instance and no application font set'
+                    # comes from WebEngine
+                    ]
+                for i in ignored:
+                    if message.startswith(i):
+                        return
+                builtins.print(message, file=sys.stderr)
+            qInstallMessageHandler(qt_message_handler)
+
             # instantiate widgets must be after ctor QApplication
             # QMainWindow must be member of something otherwise it's destructed when leaving scope
 
@@ -67,11 +82,16 @@ class GUI:
 
             # end widgets, they must be created before this line, because we're registering before_quit cb
 
-            def before_quit():
-                # this is needed for the WebEngineProfile order destruction warning:
-                # Release of profile requested but WebEnginePage still not deleted. Expect troubles
-                self.central.login.page().deleteLater()
-            self.lastWindowClosed.connect(before_quit)
+            # before_quit cleanup: does not fix the spurious warning from WebEngine
+            # when WebEngine (and QApplication) is deleted at end of main()
+            # which is needed to not hang-up on exit waiting for WebEngine thread finish
+
+            # def before_quit():
+            #     # this is needed for the WebEngineProfile order destruction warning:
+            #     # Release of profile requested but WebEnginePage still not deleted. Expect troubles
+            #     self.central.login.page().deleteLater()
+            #     # self.central.login_profile.deleteLater() # this hangs on quit
+            # self.lastWindowClosed.connect(before_quit)
 
             self.main_window.show()
             GUI.ready = True

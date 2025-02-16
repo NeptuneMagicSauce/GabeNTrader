@@ -105,12 +105,15 @@ class Widgets:
 
         def __init__(self):
             self.k_cookie_key = "steamLoginSecure"
-            k_webview_storage = os.getcwd() + '/webviewqt'
 
-            self.profile = QWebEngineProfile('webviewqt')
+            k_storage_name = 'webviewqt'
+            # profile must be a member otherwise it's deleted at end of constructor
+            self.profile = QWebEngineProfile(k_storage_name)
+            k_webview_storage = os.getcwd() + '/' + k_storage_name
             self.profile.setCachePath(k_webview_storage + '/cache')
             self.profile.setPersistentStoragePath(k_webview_storage + '/storage')
-            # self.profile.setPersistentCookiesPolicy(QWebEngineProfile.PersistentCookiesPolicy.ForcePersistentCookies) # not needed
+            # profile.setPersistentCookiesPolicy(QWebEngineProfile.PersistentCookiesPolicy.ForcePersistentCookies) # not needed
+
             super().__init__(self.profile)
 
             store = self.profile.cookieStore()
