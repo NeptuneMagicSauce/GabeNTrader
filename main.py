@@ -58,21 +58,22 @@ if __name__ == '__main__':
 
     Instances.is_main_process = True
 
-    # initialize gui: it must be ready to not miss signals before other threads are spawned
-    # important signals that can not be missed: central.login.show, tool_bar.user_action.found
-    app = GUI.App()
-    app.initialize()
+    with GUI.App() as app:
+        # initialize gui: it must be ready to not miss signals before other threads are spawned
+        # important signals that can not be missed: central.login.show, tool_bar.user_action.found
+        app.initialize()
 
-    # connect signals
-    Utils.printer.event.connect(app.print_console_cb)
-    Steam.signals.login_validated.connect(app.status_bar.login.set_success)
-    Steam.signals.user_id_found.connect(app.tool_bar.user_action.found)
-    Cookie.signals.show_login.connect(app.central.login.show)
-    Cookie.signals.show_login_old.connect(app.start_webview_cb)
-    Data.signals.tick_progress.connect(app.tick_progress)
+        # connect signals
+        Utils.printer.event.connect(app.print_console_cb)
+        Steam.signals.login_validated.connect(app.status_bar.login.set_success)
+        Steam.signals.user_id_found.connect(app.tool_bar.user_action.found)
+        Cookie.signals.show_login.connect(app.central.login.show)
+        Cookie.signals.show_login_old.connect(app.start_webview_cb)
+        Data.signals.tick_progress.connect(app.tick_progress)
 
-    # initialize initial load thread
-    threading.Thread(target=initialize, name='Init').start()
+        # initialize initial load thread
+        threading.Thread(target=initialize, name='Init').start()
 
-    app.run()
+        app.run()
+
     exit(GUI.return_code)
