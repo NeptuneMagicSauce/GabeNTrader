@@ -9,9 +9,9 @@ include_directories(${CMAKE_SOURCE_DIR}/src/utils)
 include_directories(${CMAKE_SOURCE_DIR}/src/minus)
 
 if (WIN32)
-  set(CMAKE_CXX_FLAGS "-std=c++17")
+  set(CMAKE_CXX_FLAGS "-std=c++20")
 else()
-  set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD 20)
 endif()
 
 if (WIN32)
