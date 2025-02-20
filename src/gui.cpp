@@ -19,7 +19,7 @@ using namespace std;
 
 struct SpinnerAscii {
   int index = 0;
-  string value();
+  wchar_t value();
 
   // static vector<int> buildValues() { return {}; }
   // static const vector<int> values = buildValues();
@@ -101,7 +101,14 @@ Impl::ToolBar::ToolBar() {
 }
 
 Impl::ToolBar::User::User() {
-  QObject::connect(&update, &QTimer::timeout, this, [this] { name.setText(spinner.value().c_str()); });
+
+// "TODO here: constexpr, no conversion at runtime, clean up ..."
+  auto foo = [this] {
+    auto value = spinner.value();
+    return QString::fromWCharArray(&value, 1);
+  };
+
+  QObject::connect(&update, &QTimer::timeout, this, [this, foo] { name.setText(foo()); });
   auto layout = new QHBoxLayout(this);
   layout->addWidget(&image);
   layout->addWidget(&name);
@@ -112,7 +119,7 @@ Impl::ToolBar::User::User() {
   layout->setContentsMargins(margins);
 }
 
-string SpinnerAscii::value() {
+wchar_t SpinnerAscii::value() {
   // auto constexpr values = std::array<int, 15>{
   auto values = vector<uint16_t> {
                 0x2801,
@@ -136,27 +143,11 @@ string SpinnerAscii::value() {
   reverse(reversed.begin(), reversed.end());
   auto v = vector{values};
   for (int i=1; i<(int)reversed.size() - 1; ++i) {
-    v.push_back(i);
+    v.push_back(reversed[i]);
   }
 
   auto ret = v[index];
   index += 1;
   index %= v.size();
-  // std::cout << wchar_t{ret} << std::endl;
-  std::locale::global(std::locale(""));
-  std::cout.imbue(std::locale());
-  // std::cout << string{wchar_t{ret}} << endl;
-  std::wcout.imbue(std::locale());
-  std::cout << v.size() << endl;
-  for (auto w : v) {
-    std::wcout << (int)w << " -> " << wchar_t(w) << endl;
-    std::wcout.flush();
-    // std::cout << (int)w << endl;
-  }
-  // std::wcout << "a acute: " << wchar_t(225) << std::endl;
-  // std::wcout << "pi:      " << wchar_t(960) << std::endl;
-  // cout << 2 << endl;
-  return string{wchar_t{ret}};
-  // TODO here this does not work
-
+  return ret;
 }
