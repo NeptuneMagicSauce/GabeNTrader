@@ -8,9 +8,11 @@ cmake_install.cmake
 data
 *.dll
 *.exe
+gcm.cache/
 .ignored
 .latest*
 latest*.json
+lib*.a
 .ninja_*
 notes.md
 .pycache/

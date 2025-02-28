@@ -1,3 +1,6 @@
+// #define NOQT
+#ifndef NOQT
+
 #include <iostream>
 #include <string>
 #include <QApplication>
@@ -13,7 +16,14 @@
 #include <QAction>
 #include <QTimer>
 #include <QLabel>
+
+#endif
 #include "gui.hpp"
+
+#ifdef NOQT
+GUI::GUI() { }
+int GUI::exec() { return 0; }
+#else
 
 using namespace std;
 
@@ -55,6 +65,7 @@ namespace {
 
 GUI::GUI() { instance = std::make_unique<Impl>(); }
 int GUI::exec() { return instance->a.exec(); }
+
 
 Impl::Impl() :
   argc(0),
@@ -151,3 +162,4 @@ wchar_t SpinnerAscii::value() {
   index %= v.size();
   return ret;
 }
+#endif
