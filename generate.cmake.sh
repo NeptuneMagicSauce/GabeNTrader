@@ -1,1 +1,1 @@
-build.sh
+scripts/call_batch_same_name.sh

@@ -1,6 +1,5 @@
 AppQt
 *_autogen/
-build.launch.bat
 build.ninja
 CMakeCache.txt
 CMakeFiles/
