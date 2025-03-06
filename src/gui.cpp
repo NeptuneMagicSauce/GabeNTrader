@@ -1,6 +1,3 @@
-// #define NOQT
-#ifndef NOQT
-
 import foo;
 
 #include <iostream>
@@ -19,13 +16,7 @@ import foo;
 #include <QTimer>
 #include <QLabel>
 
-#endif
 #include "gui.hpp"
-
-#ifdef NOQT
-GUI::GUI() { }
-int GUI::exec() { return 0; }
-#else
 
 using namespace std;
 
@@ -173,4 +164,3 @@ wchar_t SpinnerAscii::value() {
   index %= v.size();
   return ret;
 }
-#endif
