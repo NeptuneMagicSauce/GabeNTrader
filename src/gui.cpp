@@ -1,6 +1,8 @@
 // #define NOQT
 #ifndef NOQT
 
+import foo;
+
 #include <iostream>
 #include <string>
 #include <QApplication>
@@ -66,11 +68,20 @@ namespace {
 GUI::GUI() { instance = std::make_unique<Impl>(); }
 int GUI::exec() { return instance->a.exec(); }
 
+void GUI::stopSpinner(void) {
+  std::cout << __PRETTY_FUNCTION__ << std::endl;
+  emit spinnerStopped();
+}
 
 Impl::Impl() :
   argc(0),
   a(argc, nullptr)
 {
+  std::cout << "GUI ctor" << std::endl;
+  QTimer::singleShot(100, [] () { std::cout << "after ctor GUI qtimer" << std::endl; } );
+
+  Foo{}.foo();
+
   w.addToolBar(&t);
   w.show();
   w.setWindowIcon(standardIcon(QStyle::StandardPixmap::SP_MessageBoxWarning));
