@@ -2,12 +2,12 @@
 
 class GUI : public QObject {
   Q_OBJECT
-public:
+ public:
   GUI();
   int exec();
 
-signals:
+ signals:
   void spinnerStopped(void);
-public slots:
+ public slots:
   void stopSpinner(void);
 };
