@@ -1,4 +1,4 @@
-import foo;
+import moduletest;
 
 #include "gui.hpp"
 
@@ -16,7 +16,6 @@ import foo;
 #include <QToolBar>
 #include <QWidget>
 #include <iostream>
-#include <string>
 
 using namespace std;
 
@@ -69,7 +68,7 @@ Impl::Impl() : argc(0), a(argc, nullptr) {
   QTimer::singleShot(
       100, []() { std::cout << "after ctor GUI qtimer" << std::endl; });
 
-  Foo{}.foo();
+  ModuleTest{}.foo();
 
   w.addToolBar(&t);
   w.show();
