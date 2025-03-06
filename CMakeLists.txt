@@ -2,11 +2,11 @@ cmake_minimum_required(VERSION 3.28) # min 3.28 for cpp modules
 
 project(Trader)
 
-set(sources src/main.cpp src/gui.cpp)
-set(sources_modules src/foo.cxx)
-# FILE(GLOB_RECURSE sources CONFIGURE_DEPENDS src/*.cpp)
-# FILE(GLOB_RECURSE sources_modules CONFIGURE_DEPENDS src/*.cxx)
-# FILE(GLOB_RECURSE resources CONFIGURE_DEPENDS data/*.qrc)
+# set(sources src/main.cpp src/gui.cpp)
+# set(sources_modules src/foo.cxx)
+FILE(GLOB_RECURSE sources CONFIGURE_DEPENDS src/*.cpp)
+FILE(GLOB_RECURSE sources_modules CONFIGURE_DEPENDS src/*.cxx)
+FILE(GLOB_RECURSE resources CONFIGURE_DEPENDS data/*.qrc)
 
 message(">>> sources ${sources}")
 message(">>> modules ${sources_modules}")
