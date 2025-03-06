@@ -33,6 +33,9 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif()
 
+# compile-commands are needed by clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 set(CMAKE_AUTOMOC ON) # must be before add_executable() # fails with clang19 (and modules?)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
