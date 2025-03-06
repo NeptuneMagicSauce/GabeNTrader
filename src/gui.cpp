@@ -1,22 +1,22 @@
 import foo;
 
-#include <iostream>
-#include <string>
+#include "gui.hpp"
+
+#include <QAction>
 #include <QApplication>
-#include <QMainWindow>
-#include <QToolBar>
-#include <QWidget>
 #include <QHBoxLayout>
-#include <QStyle>
+#include <QKeySequence>
+#include <QLabel>
 #include <QLineEdit>
+#include <QMainWindow>
 #include <QPushButton>
 #include <QShortcut>
-#include <QKeySequence>
-#include <QAction>
+#include <QStyle>
 #include <QTimer>
-#include <QLabel>
-
-#include "gui.hpp"
+#include <QToolBar>
+#include <QWidget>
+#include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -29,9 +29,9 @@ struct SpinnerAscii {
 };
 
 struct Impl {
-  struct ToolBar: public QToolBar {
+  struct ToolBar : public QToolBar {
     ToolBar();
-    struct User: public QWidget {
+    struct User : public QWidget {
       User();
       QTimer update;
       QLabel image;
@@ -48,12 +48,12 @@ struct Impl {
   QIcon standardIcon(QStyle::StandardPixmap name) const;
 };
 
-struct Central: public QWidget {
+struct Central : public QWidget {
   Central();
 };
 
 namespace {
-  std::unique_ptr<Impl> instance = nullptr;
+std::unique_ptr<Impl> instance = nullptr;
 }
 
 GUI::GUI() { instance = std::make_unique<Impl>(); }
@@ -64,12 +64,10 @@ void GUI::stopSpinner(void) {
   emit spinnerStopped();
 }
 
-Impl::Impl() :
-  argc(0),
-  a(argc, nullptr)
-{
+Impl::Impl() : argc(0), a(argc, nullptr) {
   std::cout << "GUI ctor" << std::endl;
-  QTimer::singleShot(100, [] () { std::cout << "after ctor GUI qtimer" << std::endl; } );
+  QTimer::singleShot(
+      100, []() { std::cout << "after ctor GUI qtimer" << std::endl; });
 
   Foo{}.foo();
 
@@ -80,7 +78,8 @@ Impl::Impl() :
 
   auto quitShortcut = new QShortcut(QKeySequence(Qt::Key_F12), &w);
   quitShortcut->setContext(Qt::ApplicationShortcut);
-  QObject::connect(quitShortcut, &QShortcut::activated, &a, &QApplication::quit);
+  QObject::connect(quitShortcut, &QShortcut::activated, &a,
+                   &QApplication::quit);
 }
 
 QIcon Impl::standardIcon(QStyle::StandardPixmap name) const {
@@ -101,7 +100,8 @@ Impl::ToolBar::ToolBar() {
   setFixedHeight(30);
 
   auto logs = new QAction();
-  logs->setIcon(instance->standardIcon(QStyle::StandardPixmap::SP_MessageBoxInformation));
+  logs->setIcon(
+      instance->standardIcon(QStyle::StandardPixmap::SP_MessageBoxInformation));
   logs->setText("Logs");
   logs->setCheckable(true);
   addAction(logs);
@@ -114,14 +114,14 @@ Impl::ToolBar::ToolBar() {
 }
 
 Impl::ToolBar::User::User() {
-
-// "TODO here: constexpr, no conversion at runtime, clean up ..."
+  // "TODO here: constexpr, no conversion at runtime, clean up ..."
   auto foo = [this] {
     auto value = spinner.value();
     return QString::fromWCharArray(&value, 1);
   };
 
-  QObject::connect(&update, &QTimer::timeout, this, [this, foo] { name.setText(foo()); });
+  QObject::connect(&update, &QTimer::timeout, this,
+                   [this, foo] { name.setText(foo()); });
   auto layout = new QHBoxLayout(this);
   layout->addWidget(&image);
   layout->addWidget(&name);
@@ -134,28 +134,15 @@ Impl::ToolBar::User::User() {
 
 wchar_t SpinnerAscii::value() {
   // auto constexpr values = std::array<int, 15>{
-  auto values = vector<uint16_t> {
-                0x2801,
-                0x2809,
-                0x2819,
-                0x281b,
-                0x281f,
-                0x283f,
-                0x28bf,
-                0x28ff,
+  auto values = vector<uint16_t>{
+      0x2801, 0x2809, 0x2819, 0x281b, 0x281f, 0x283f, 0x28bf, 0x28ff,
 
-                0x28fe,
-                0x28f6,
-                0x28e6,
-                0x28e4,
-                0x28e0,
-                0x28c0,
-                0x2840,
+      0x28fe, 0x28f6, 0x28e6, 0x28e4, 0x28e0, 0x28c0, 0x2840,
   };
   auto reversed = values;
   reverse(reversed.begin(), reversed.end());
   auto v = vector{values};
-  for (int i=1; i<(int)reversed.size() - 1; ++i) {
+  for (int i = 1; i < (int)reversed.size() - 1; ++i) {
     v.push_back(reversed[i]);
   }
 
