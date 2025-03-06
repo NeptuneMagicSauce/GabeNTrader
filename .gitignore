@@ -1,9 +1,11 @@
 AppQt
 *_autogen/
 build.ninja
+.cache
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
+compile_commands.json
 data
 *.dll
 *.exe
