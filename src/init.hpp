@@ -13,6 +13,9 @@ class Init : public QObject {
   Q_OBJECT
  public:
   Init();
+  // can't be copied because member thread is exclusive
+  Init(const Init&) = delete;
+  Init& operator=(const Init&) = delete;
   void start();
   ~Init();
 
