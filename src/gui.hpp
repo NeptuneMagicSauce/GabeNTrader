@@ -12,4 +12,5 @@ class GUI : public QObject {
   void spinnerStopped(void);
  public slots:
   void stopSpinner(void);
+  void showLogin(void);
 };

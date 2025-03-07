@@ -15,6 +15,9 @@ message(">>> resources ${resources}")
 set(CMAKE_CXX_STANDARD 23)
 # set(CMAKE_CXX_SCAN_FOR_MODULES 0) # needed for qt-clang-17 which does not have clang-scan-deps
 
+# faster linking with llvm, but it's already the default with generate.bat
+# set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=lld")
+
 set(PATHROOT "c:") # cmake from qt
 # set(PATHROOT "/c") # cmake from mingw
 set(QT6_PATH "${PATHROOT}/Devel/Tools/Qt/6.8.2")
