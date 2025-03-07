@@ -150,3 +150,5 @@ wchar_t SpinnerAscii::value() {
   index %= v.size();
   return ret;
 }
+
+void GUI::showLogin() { std::cout << __PRETTY_FUNCTION__ << std::endl; }
