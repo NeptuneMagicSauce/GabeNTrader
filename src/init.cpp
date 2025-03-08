@@ -1,11 +1,9 @@
 #include "init.hpp"
 
 #include <iostream>
-#include <thread>
 
-Init::Init() {}
 void Init::start() {
-  t = std::make_shared<std::thread>([this]() { work(); });
+  t = std::thread{[this]() { work(); }};
 }
 Init::~Init() {
   if (t) {

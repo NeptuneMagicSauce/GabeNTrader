@@ -1,18 +1,13 @@
 #pragma once
 
-#include <qtmetamacros.h>
-
 #include <QObject>
-#include <memory>
-
-namespace std {
-struct thread;
-}
+#include <optional>
+#include <thread>
 
 class Init : public QObject {
   Q_OBJECT
  public:
-  Init();
+  Init() = default;
   // can't be copied because member thread is exclusive
   Init(const Init&) = delete;
   Init& operator=(const Init&) = delete;
@@ -23,6 +18,6 @@ class Init : public QObject {
   void showLogin(void);
 
  private:
-  std::shared_ptr<std::thread> t = nullptr;
+  std::optional<std::thread> t;
   void work();
 };
